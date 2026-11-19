@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fff6ea">
+<meta name="description" content="기억력·집중력·계산력·언어·공간지각을 골고루 쓰는 8가지 두뇌 미니게임">
+<title>말랑한 두뇌를 위한 미니게임 모음</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🧠%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+:root{
+  --bg:#fff6ea;--card:#ffffff;--ink:#2a2622;--sub:#5d554c;--line:#eadfce;
+  --accent:#f07a4a;--accent-d:#c9592b;--soft:#ffe6d6;
+  --good:#1e8e3e;--good-bg:#e3f4e7;--bad:#c62828;--bad-bg:#fde7e7;--r:20px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{font-size:20px}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;line-height:1.5;word-break:keep-all;overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:disabled{cursor:default}
+#app{max-width:560px;margin:0 auto;padding:16px 16px calc(28px + env(safe-area-inset-bottom));min-height:100vh}
+h1,h2{margin:0}
+.hero{text-align:center;padding:10px 0 4px}
+.hero .logo{font-size:2.6rem;line-height:1}
+.hero h1{font-size:1.4rem;line-height:1.35;margin:8px 0 4px}
+.hero .date{color:var(--sub);font-size:.9rem}
+.stats{display:flex;gap:10px;margin:16px 0}
+.stat{flex:1;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:1.3rem;color:var(--accent-d)}
+.stat span{font-size:.75rem;color:var(--sub)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:16px 8px;text-align:center;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;position:relative;box-shadow:0 4px 0 var(--line)}
+.tile:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.tile .ic{font-size:2.4rem;line-height:1}
+.tile .nm{font-weight:800;font-size:1rem;line-height:1.3}
+.tile .ar{font-size:.7rem;color:var(--accent-d);background:var(--soft);border-radius:99px;padding:2px 10px;font-weight:700}
+.tile .done{position:absolute;top:8px;right:10px;font-size:.75rem;color:#e0a100;letter-spacing:-1px}
+.tile.is-done{border-color:#f3c9a8}
+.foot{margin-top:22px;text-align:center;color:var(--sub);font-size:.78rem;line-height:1.6}
+.sound{background:var(--card);border:2px solid var(--line);border-radius:99px;padding:8px 18px;font-size:.85rem;font-weight:700;margin-bottom:10px;min-height:48px}
+
+.game-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.back{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:6px 12px;font-weight:800;min-height:52px;font-size:.9rem;white-space:nowrap}
+.gtitle{flex:1;font-weight:800;font-size:1rem;text-align:center;line-height:1.3}
+.prog{min-width:70px;text-align:right;font-size:.8rem;color:var(--sub);font-weight:700}
+.card{background:var(--card);border:2px solid var(--line);border-radius:var(--r);padding:18px 16px;text-align:center}
+.q{font-size:1.15rem;font-weight:700;line-height:1.55}
+.sub{color:var(--sub);font-size:.9rem;margin-top:6px}
+.guide{text-align:center;color:var(--sub);font-size:.9rem;margin:0 0 10px}
+.options{display:grid;gap:10px;margin-top:14px}
+.options.cols2{grid-template-columns:1fr 1fr}
+.opt{background:var(--card);border:3px solid var(--line);border-radius:16px;min-height:66px;padding:10px;font-size:1.1rem;font-weight:800;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 3px 0 var(--line)}
+.opt:active:not(:disabled){transform:translateY(2px);box-shadow:none}
+.opt.right{border-color:var(--good);background:var(--good-bg)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.btn{display:block;border:0;border-radius:16px;min-height:60px;padding:12px 20px;font-size:1.1rem;font-weight:800;width:100%;margin-top:14px}
+.btn.primary{background:var(--accent);color:#fff;box-shadow:0 4px 0 var(--accent-d)}
+.btn.primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 var(--accent-d)}
+.btn.primary:disabled{background:#d9cfc4;box-shadow:0 4px 0 #c2b6a8}
+.btn.ghost{background:var(--card);border:2px solid var(--line)}
+.row{display:flex;gap:10px}
+.row .btn{flex:1}
+.answer-box{margin-top:14px;background:#fff8e6;border:2px solid #f3dca0;border-radius:16px;padding:12px 14px;text-align:center;font-size:.95rem}
+.answer-box b{color:var(--accent-d)}
+
+.intro .big-ic,.result .big-ic{font-size:3.4rem;line-height:1.1}
+.intro h2,.result h2{font-size:1.25rem;margin:8px 0}
+.how{text-align:left;font-size:.95rem;color:var(--ink);background:var(--bg);border-radius:14px;padding:12px 14px;margin-top:8px}
+.how p{margin:0 0 6px}.how p:last-child{margin:0}
+.lv-title{text-align:center;font-weight:800;margin:18px 0 8px}
+.levels{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:10px}
+.lv{background:var(--card);border:3px solid var(--line);border-radius:16px;padding:12px 4px;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 0 var(--line)}
+.lv b{font-size:1.05rem}.lv span{font-size:.72rem;color:var(--sub)}
+.lv.last{border-color:var(--accent)}
+.stars{font-size:2rem;color:#f2b600;letter-spacing:4px}
+.stars span{color:#e6dccf}
+.toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%) scale(.8);background:var(--good);color:#fff;font-weight:800;font-size:1.3rem;padding:12px 26px;border-radius:99px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:50;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s}
+
+/* 짝 맞추기 */
+.pairs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:440px;margin:0 auto}
+.pcard{aspect-ratio:3/4;border:0;border-radius:14px;background:var(--accent);box-shadow:0 4px 0 var(--accent-d);font-size:2rem;display:flex;align-items:center;justify-content:center;padding:0;transition:transform .15s}
+.pcard .front{display:none}
+.pcard .back{color:#fff;font-weight:900;opacity:.75}
+.pcard.open{background:#fff;box-shadow:0 0 0 3px var(--line) inset;transform:scale(1.03)}
+.pcard.open .front{display:block}.pcard.open .back{display:none}
+.pcard.done{background:var(--good-bg);box-shadow:0 0 0 3px var(--good) inset;transform:none}
+
+/* 색깔 낱말 */
+.stroop{font-size:3.4rem;font-weight:900;margin:10px 0 4px;letter-spacing:4px}
+.sw{width:30px;height:30px;border-radius:50%;flex:none}
+
+/* 장보기 */
+.goods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.good{background:var(--card);border:3px solid var(--line);border-radius:16px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;font-weight:700;font-size:.9rem;min-height:92px;justify-content:center}
+.good .ge{font-size:2.1rem;line-height:1.2}
+.goods.mem .good{border-color:#f3c9a8;background:#fffaf5}
+.good.on{border-color:var(--accent);background:var(--soft)}
+.good.right{border-color:var(--good);background:var(--good-bg)}
+.good.wrong{border-color:var(--bad);background:var(--bad-bg)}
+.good.missed{border-style:dashed;border-color:var(--good)}
+
+/* 시장 계산 */
+.receipt{text-align:left;background:#fffdf7;border:2px dashed #e2cfa8;border-radius:14px;padding:10px 14px;margin-bottom:10px;font-size:.95rem}
+.receipt .ln{display:flex;justify-content:space-between;gap:8px;padding:3px 0}
+
+/* 다른 그림 찾기 */
+.dlabel{text-align:center;font-weight:800;font-size:.85rem;margin:8px 0 4px;color:var(--sub)}
+.dgrid{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:4px;width:min(100%,38vh);min-width:240px;max-width:100%;margin:0 auto;background:#e9f6ff;border:3px solid #bfe0f5;border-radius:16px;padding:6px}
+.dcell{aspect-ratio:1;border:0;background:transparent;border-radius:10px;padding:0;display:flex;align-items:center;justify-content:center;line-height:1}
+.dcell.found{background:#fff;box-shadow:0 0 0 3px var(--bad) inset;border-radius:50%}
+.dcell.flash{animation:flash .5s 3}
+@keyframes flash{50%{background:#ffe27a}}
+
+/* 그림 조각 */
+.pz-top{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.pz-thumb{width:96px;height:96px;border-radius:12px;border:3px solid var(--line);flex:none}
+.pz-top .guide{text-align:left;margin:0}
+.pz{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:4px;max-width:440px;margin:10px auto 0;transition:gap .4s}
+.pc{aspect-ratio:1;border:0;padding:0;border-radius:6px;background-image:var(--img);background-repeat:no-repeat;position:relative;transition:transform .15s}
+.pc.sel{outline:5px solid var(--accent);outline-offset:-5px;transform:scale(.92)}
+.pz.solved{gap:0}
+.pz.solved .pc{border-radius:0}
+
+/* 점수·랭킹 */
+.score-big{font-size:2.3rem;font-weight:900;color:var(--accent-d);line-height:1.2;margin:4px 0}
+.badge{display:inline-block;border-radius:99px;padding:4px 14px;font-weight:800;font-size:.85rem;margin:4px 2px}
+.badge.best{background:#fff1c2;color:#8a5a00}
+.badge.rank{background:var(--good-bg);color:var(--good)}
+.chal{color:var(--sub);font-size:.88rem;margin-top:4px}
+.rankcard{margin-top:14px;text-align:left}
+.rankcard h3{margin:0 0 8px;font-size:1.05rem;text-align:center}
+.rank{list-style:none;margin:0;padding:0}
+.rank li{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line);font-size:.95rem}
+.rank li:last-child{border-bottom:0}
+.rank li.me{background:var(--soft);border-radius:10px;font-weight:800}
+.rank .rk{width:34px;text-align:center;font-weight:800;flex:none}
+.rank .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rank .nm em{font-style:normal;font-size:.7rem;color:var(--accent-d);background:var(--soft);border-radius:99px;padding:1px 8px;margin-left:4px}
+.rank b{flex:none}
+.rec-line{margin-top:12px;background:#fff8e6;border:2px solid #f3dca0;border-radius:14px;padding:10px 12px;font-size:.9rem;text-align:center;font-weight:700}
+.name-form{display:flex;gap:8px;margin-top:8px}
+.name-form input{flex:1;min-width:0;font:inherit;font-size:1.05rem;border:3px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff}
+.name-form input:focus{outline:none;border-color:var(--accent)}
+.name-form button{flex:none;border:0;border-radius:14px;background:var(--accent);color:#fff;font-weight:800;padding:0 18px;min-height:56px}
+.name-err{color:var(--bad);font-size:.85rem;margin-top:6px;min-height:1.2em}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px}
+.chip{border:2px solid var(--line);background:var(--card);border-radius:99px;padding:6px 12px;font-size:.85rem;font-weight:700;min-height:44px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.rank-btn{display:block;width:100%;margin:12px 0 0;border:0;border-radius:var(--r);min-height:64px;background:linear-gradient(135deg,#ffcf5c,#f7a531);color:#5b3600;font-size:1.1rem;font-weight:900;box-shadow:0 4px 0 #d38712}
+.rank-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #d38712}
+.link-btn{background:none;border:0;color:var(--accent-d);font-weight:800;text-decoration:underline;padding:6px;min-height:44px}
+
+/* 휴식 안내 */
+.break{position:fixed;inset:0;background:rgba(42,38,34,.62);display:flex;align-items:center;justify-content:center;padding:16px;z-index:100}
+.break .box{background:#fff;border-radius:24px;padding:28px 22px;max-width:420px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.break .ic{font-size:3.4rem;line-height:1.1}
+.break h2{font-size:1.35rem;margin:10px 0}
+.break p{margin:6px 0;font-size:1rem}
+.break .tap{margin-top:16px;color:var(--accent-d);font-weight:800;font-size:.95rem}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<div class="toast" id="toast" aria-live="polite"></div>
+
+<script>
+"use strict";
+/* ---------- 공통 도구 ---------- */
+const $app = document.getElementById('app');
+const rand = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const won = n => n.toLocaleString('ko-KR') + '원';
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+};
+const dateKey = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+
+// 화면을 바꾸면 이전 게임의 예약 동작이 실행되지 않도록 함
+let token = 0;
+function later(fn, ms) { const t = token; setTimeout(() => { if (t === token) fn(); }, ms); }
+
+/* ---------- 소리·진동 ---------- */
+let actx = null;
+let soundOn = store.get('mallang.sound', true);
+function tone(freqs, step = 0.11) {
+  if (!soundOn) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t0 = actx.currentTime;
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * step;
+      o.type = 'sine'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(0.18, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + step + 0.12);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + step + 0.15);
+    });
+  } catch (e) {}
+}
+function feedback(ok) {
+  tone(ok ? [660, 880] : [330, 260]);
+  try { if (navigator.vibrate) navigator.vibrate(ok ? 30 : [40, 40, 40]); } catch (e) {}
+}
+function toast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.classList.add('show');
+  clearTimeout(toast.timer); toast.timer = setTimeout(() => t.classList.remove('show'), 800);
+}
+const PRAISE = ['맞았어요! 👏', '잘하셨어요! 😊', '훌륭해요! 🌟', '정답이에요! 🎉'];
+
+/* ---------- 기록 ---------- */
+function markDone(id, stars) {
+  const log = store.get('mallang.log', {}), k = dateKey(new Date());
+  log[k] = log[k] || {};
+  log[k][id] = Math.max(log[k][id] || 0, stars);
+  store.set('mallang.log', log);
+}
+function streak() {
+  const log = store.get('mallang.log', {});
+  const d = new Date();
+  if (!log[dateKey(d)]) d.setDate(d.getDate() - 1);
+  let n = 0;
+  while (log[dateKey(d)]) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+
+/* ---------- 게임 목록 ---------- */
+// levels: 랭킹을 나누는 난이도 이름(각 게임 시작 화면의 난이도 버튼 이름과 같아야 함)
+const LV3 = ['쉬움', '보통', '어려움'];
+const GAMES = [
+  { id: 'today',   name: '오늘의 질문',     icon: '📅', area: '지남력',   start: startToday },
+  { id: 'pair',    name: '짝 맞추기',       icon: '🃏', area: '기억력',   start: startPair,   levels: LV3 },
+  { id: 'color',   name: '색깔 낱말',       icon: '🎨', area: '집중력',   start: startColor,  levels: ['쉬움', '어려움'] },
+  { id: 'shop',    name: '장보기 기억',     icon: '🧺', area: '기억력',   start: startShop,   levels: LV3 },
+  { id: 'calc',    name: '시장 계산',       icon: '🧮', area: '계산력',   start: startCalc,   levels: LV3 },
+  { id: 'diff',    name: '다른 그림 찾기',  icon: '🔍', area: '주의력',   start: startDiff,   levels: LV3 },
+  { id: 'proverb', name: '속담 완성',       icon: '📜', area: '언어',     start: startProverb },
+  { id: 'puzzle',  name: '그림 조각 맞추기', icon: '🧩', area: '공간지각', start: startPuzzle, levels: LV3 },
+];
+const byId = id => GAMES.find(g => g.id === id);
+
+/* ---------- 첫 화면 ---------- */
+function showHome() {
+  token++;
+  const now = new Date();
+  const W = ['일', '월', '화', '수', '목', '금', '토'];
+  const today = store.get('mallang.log', {})[dateKey(now)] || {};
+  const doneCount = GAMES.filter(g => today[g.id]).length;
+  $app.innerHTML = `
+    <header class="hero">
+      <div class="logo">🧠</div>
+      <h1>말랑한 두뇌를 위한<br>미니게임 모음</h1>
+      <div class="date">${now.getMonth() + 1}월 ${now.getDate()}일 ${W[now.getDay()]}요일</div>
+    </header>
+    <div class="stats">
+      <div class="stat"><b>${doneCount} / ${GAMES.length}</b><span>오늘 해 본 게임</span></div>
+      <div class="stat"><b>${streak()}일</b><span>연속 참여</span></div>
+    </div>
+    <div class="tiles">
+      ${GAMES.map(g => `
+        <button class="tile ${today[g.id] ? 'is-done' : ''}" data-id="${g.id}">
+          ${today[g.id] ? `<span class="done">${'★'.repeat(today[g.id])}</span>` : ''}
+          <span class="ic">${g.icon}</span>
+          <span class="nm">${g.name}</span>
+          <span class="ar">${g.area}</span>
+        </button>`).join('')}
+    </div>
+    <button class="rank-btn" id="rankBtn">🏆 게임별 TOP 10 랭킹 보기</button>
+    <div class="foot">
+      <button class="sound" id="soundBtn">${soundOn ? '🔊 소리 켜짐' : '🔇 소리 꺼짐'}</button><br>
+      30분 넘게 하시면 쉬어 가라는 안내가 나와요.
+    </div>`;
+  $app.querySelectorAll('.tile').forEach(b => b.onclick = () => byId(b.dataset.id).start());
+  document.getElementById('rankBtn').onclick = () => showRanking();
+  document.getElementById('soundBtn').onclick = () => {
+    soundOn = !soundOn; store.set('mallang.sound', soundOn); showHome();
+  };
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 랭킹 ----------
+   LEADERBOARD_URL: 구글 Apps Script 웹앱 주소(apps-script/Code.gs 배포).
+   비어 있으면 이 기기 안에서만 TOP 10을 기록합니다. */
+const LEADERBOARD_URL = 'https://script.google.com/macros/s/AKfycbwaRrs9JIG-80dPVOV1d04Rg4haHtCSWOdyZMwu2cNywheIkZ8BrTKiQSoZ3Hu7T11X8Q/exec';
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => (+n).toLocaleString('ko-KR');
+const getName = () => store.get('mallang.name', '');
+function checkName(n) {
+  if (n.length < 2 || n.length > 10) return '별명은 2~10글자로 정해 주세요.';
+  if (/\d{6,}/.test(n) || /@/.test(n)) return '전화번호·학번·이메일 같은 정보는 쓸 수 없어요.';
+  if (/[<>&"'\\]/.test(n)) return '특수문자 < > & " \' \\ 는 쓸 수 없어요.';
+  if (/(시발|씨발|병신|개새|좆|존나|섹스)/.test(n.replace(/\s/g, ''))) return '고운 말로 지어 주세요.';
+  return '';
+}
+const rankSort = (a, b) => b.score - a.score || a.ts - b.ts;
+function fetchT(url, opt = {}, ms = 8000) {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  return fetch(url, Object.assign({}, opt, { signal: c.signal })).finally(() => clearTimeout(t));
+}
+// 랭킹은 게임 × 난이도별로 따로 집계 (난이도 없는 게임은 level '')
+const bestKey = (game, level) => level ? game + '|' + level : game;
+const levelsOf = game => byId(game).levels || [''];
+const Rank = {
+  local(game, level) { return (store.get('mallang.recs', {})[game] || []).filter(r => (r.level || '') === level).sort(rankSort); },
+  saveLocal(rec) {
+    const all = store.get('mallang.recs', {});
+    all[rec.game] = (all[rec.game] || []).concat(rec).sort(rankSort).slice(0, 150);
+    store.set('mallang.recs', all);
+    return this.local(rec.game, rec.level).findIndex(r => r.ts === rec.ts && r.name === rec.name) + 1 || 99;
+  },
+  async submit(rec) {
+    rec.ts = Date.now();
+    const localRank = this.saveLocal(rec);
+    if (!LEADERBOARD_URL) return { top: this.local(rec.game, rec.level).slice(0, 10), rank: localRank, online: false };
+    const r = await fetchT(LEADERBOARD_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(rec) });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || '저장 실패');
+    return { top: j.top || [], rank: j.rank || 99, online: true };
+  },
+  // 한 난이도의 TOP 10
+  async top(game, level) {
+    if (!LEADERBOARD_URL) return this.local(game, level).slice(0, 10);
+    const j = await (await fetchT(LEADERBOARD_URL + '?action=top&game=' + encodeURIComponent(game) + '&level=' + encodeURIComponent(level))).json();
+    if (!j.ok) throw new Error(j.error);
+    return j.top || [];
+  },
+  // 모든 난이도의 TOP 10 → { 난이도: [...] }
+  async tops(game) {
+    const o = {};
+    if (!LEADERBOARD_URL) { levelsOf(game).forEach(l => o[l] = this.local(game, l).slice(0, 10)); return o; }
+    const j = await (await fetchT(LEADERBOARD_URL + '?action=tops&game=' + encodeURIComponent(game))).json();
+    if (!j.ok) throw new Error(j.error);
+    return j.tops || o;
+  },
+};
+function topList(top, meIdx = -1) {
+  if (!top.length) return '<p class="sub" style="text-align:center">아직 기록이 없어요.<br>첫 번째 1위에 도전해 보세요!</p>';
+  return `<ol class="rank">${top.slice(0, 10).map((r, i) => `
+    <li class="${i === meIdx ? 'me' : ''}">
+      <span class="rk">${i < 3 ? ['🥇', '🥈', '🥉'][i] : i + 1}</span>
+      <span class="nm">${esc(r.name)}</span>
+      <b>${fmt(r.score)}점</b>
+    </li>`).join('')}</ol>`;
+}
+// 별명 입력 칸을 box 안에 그리고, 저장되면 onDone(별명) 호출
+function nameForm(box, onDone, guide) {
+  box.innerHTML = `
+    <p class="sub" style="text-align:center;margin:0">${guide || '랭킹에 올릴 별명을 정해 주세요.'}<br>실명·전화번호 대신 <b>별명</b>을 써 주세요.</p>
+    <form class="name-form"><input maxlength="10" placeholder="예: 말랑이" value="${esc(getName())}" aria-label="별명"><button>저장</button></form>
+    <div class="name-err"></div>`;
+  const f = box.querySelector('form'), inp = f.querySelector('input'), err = box.querySelector('.name-err');
+  f.onsubmit = e => {
+    e.preventDefault();
+    const n = inp.value.trim(), msg = checkName(n);
+    if (msg) { err.textContent = msg; inp.classList.add('shake'); later(() => inp.classList.remove('shake'), 300); return; }
+    store.set('mallang.name', n); onDone(n);
+  };
+}
+
+function showRanking(gid, lv) {
+  token++;
+  const t = token;
+  gid = gid || store.get('mallang.rankTab', 'today');
+  store.set('mallang.rankTab', gid);
+  const lvs = levelsOf(gid);
+  if (!lvs.includes(lv)) lv = lvs[store.get('mallang.level.' + gid, 0)] || lvs[0];
+  const g = byId(gid), best = store.get('mallang.best', {})[bestKey(gid, lv)];
+  $app.innerHTML = `
+    <div class="game-head">
+      <button class="back" id="backBtn">‹ 목록</button>
+      <div class="gtitle">🏆 게임별 TOP 10</div>
+      <div class="prog"></div>
+    </div>
+    <div class="chips">${GAMES.map(x => `<button class="chip ${x.id === gid ? 'on' : ''}" data-id="${x.id}">${x.icon} ${x.name}</button>`).join('')}</div>
+    <div class="card rankcard">
+      <h3>${g.icon} ${g.name}${lv ? ` · ${lv}` : ''}</h3>
+      ${lvs.length > 1 ? `<div class="chips">${lvs.map(l => `<button class="chip lvchip ${l === lv ? 'on' : ''}" data-lv="${l}">${l}</button>`).join('')}</div>` : ''}
+      <div id="rankBody"><p class="sub" style="text-align:center">불러오는 중…</p></div>
+    </div>
+    <div class="rec-line">내 최고 기록${lv ? `(${lv})` : ''}: ${best ? fmt(best) + '점' : '아직 없어요'}</div>
+    <div class="card" style="margin-top:12px" id="nameBox">
+      내 별명: <b>${getName() ? esc(getName()) : '(아직 없음)'}</b>
+      <button class="link-btn" id="nameBtn">${getName() ? '바꾸기' : '정하기'}</button>
+    </div>
+    <button class="btn primary" id="playBtn">${g.icon} ${g.name} 도전하기</button>`;
+  document.getElementById('backBtn').onclick = showHome;
+  document.getElementById('playBtn').onclick = () => g.start();
+  $app.querySelectorAll('.chip[data-id]').forEach(c => c.onclick = () => showRanking(c.dataset.id));
+  $app.querySelectorAll('.lvchip').forEach(c => c.onclick = () => showRanking(gid, c.dataset.lv));
+  document.getElementById('nameBtn').onclick = () =>
+    nameForm(document.getElementById('nameBox'), () => showRanking(gid, lv), '새 별명을 입력해 주세요. 이후 기록부터 적용돼요.');
+  Rank.top(gid, lv).then(top => {
+    if (t !== token) return;
+    const me = getName();
+    document.getElementById('rankBody').innerHTML = topList(top, me ? top.findIndex(r => r.name === me) : -1);
+  }).catch(() => {
+    if (t !== token) return;
+    document.getElementById('rankBody').innerHTML = '<p class="sub" style="text-align:center">랭킹 서버에 연결하지 못했어요.<br>이 기기 기록만 보여 드려요.</p>' + topList(Rank.local(gid, lv).slice(0, 10));
+  });
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 게임 화면 틀 ---------- */
+function gameFrame(g) {
+  token++;
+  $app.innerHTML = `
+    <div class="game-head">
+      <button class="back" id="backBtn">‹ 목록</button>
+      <div class="gtitle">${g.icon} ${g.name}</div>
+      <div class="prog" id="prog"></div>
+    </div>
+    <div id="stage"></div>`;
+  document.getElementById('backBtn').onclick = showHome;
+  window.scrollTo(0, 0);
+  return document.getElementById('stage');
+}
+function setProg(t) { const p = document.getElementById('prog'); if (p) p.textContent = t; }
+
+function showIntro(g, how, levels, onStart) {
+  const stage = gameFrame(g);
+  const last = store.get('mallang.level.' + g.id, -1);
+  stage.innerHTML = `
+    <div class="card intro">
+      <div class="big-ic">${g.icon}</div>
+      <h2>${g.name}</h2>
+      <div class="how">${how}</div>
+      <div class="rec-line" id="recLine">🏆 기록 불러오는 중…</div>
+    </div>
+    ${levels
+      ? `<p class="lv-title">난이도를 골라 시작하세요</p>
+         <div class="levels">${levels.map((l, i) => `<button class="lv ${last === i ? 'last' : ''}" data-i="${i}"><b>${l.label}</b><span>${l.sub}</span></button>`).join('')}</div>`
+      : `<button class="btn primary" id="goBtn">시작하기</button>`}`;
+  const t = token, bests = store.get('mallang.best', {}), lvNames = levelsOf(g.id);
+  const myBest = l => { const b = bests[bestKey(g.id, l)]; return `⭐ 내 최고 ${b ? `<b>${fmt(b)}점</b>` : '없음'}`; };
+  Rank.tops(g.id).then(tops => {
+    if (t !== token) return;
+    document.getElementById('recLine').innerHTML = lvNames.map(l => {
+      const f = (tops[l] || [])[0];
+      const one = f ? `🥇 1위 <b>${fmt(f.score)}점</b> (${esc(f.name)})` : '🥇 1위 없음, 첫 기록에 도전!';
+      return l ? `<div style="margin:2px 0"><b>[${l}]</b> ${one}<br>${myBest(l)}</div>` : `${one}<br>${myBest(l)}`;
+    }).join('');
+  }).catch(() => { if (t === token) document.getElementById('recLine').innerHTML = lvNames.map(l => (l ? `[${l}] ` : '') + myBest(l)).join('<br>'); });
+  const begin = (v, label) => { playStart = Date.now(); playLevel = label; onStart(v); };
+  if (levels) {
+    stage.querySelectorAll('.lv').forEach(b => b.onclick = () => {
+      const i = +b.dataset.i; store.set('mallang.level.' + g.id, i); begin(levels[i].v, levels[i].label);
+    });
+  } else {
+    document.getElementById('goBtn').onclick = () => begin(undefined, '');
+  }
+}
+let playStart = Date.now(), playLevel = '';
+const playSec = () => Math.round((Date.now() - playStart) / 1000);
+
+// r = { stars, title, detail, score }
+function finish(g, r) {
+  const stars = Math.max(1, Math.min(3, r.stars));
+  const score = Math.max(10, Math.round(r.score));
+  const dur = playSec();
+  markDone(g.id, stars);
+  const bests = store.get('mallang.best', {}), bk = bestKey(g.id, playLevel), prev = bests[bk] || 0;
+  if (score > prev) { bests[bk] = score; store.set('mallang.best', bests); }
+  const stage = gameFrame(g), t = token;
+  const msg = ['', '끝까지 해내셨어요! 다음엔 더 잘하실 거예요.', '잘하셨어요! 두뇌가 말랑말랑해지고 있어요.', '아주 훌륭해요! 오늘 두뇌 운동 최고예요.'][stars];
+  const bestLine = !prev ? '<span class="badge best">✨ 첫 기록이에요!</span>'
+    : score > prev ? `<span class="badge best">🎉 내 최고 기록 갱신! (이전 ${fmt(prev)}점)</span>`
+    : score === prev ? `<div class="chal">🤝 내 최고 기록과 같은 점수예요! 다음엔 1점만 더!</div>`
+    : `<div class="chal">내 최고 기록 ${fmt(prev)}점까지 <b>${fmt(prev - score + 1)}점</b> 남았어요</div>`;
+  stage.innerHTML = `
+    <div class="card result">
+      <div class="big-ic">${['', '🌱', '🌷', '🏆'][stars]}</div>
+      <div class="stars">${'★'.repeat(stars)}<span>${'★'.repeat(3 - stars)}</span></div>
+      <h2>${r.title}</h2>
+      ${r.detail ? `<p class="sub">${r.detail}</p>` : ''}
+      <div class="score-big">${fmt(score)}점</div>
+      ${bestLine}
+      <p>${msg}</p>
+    </div>
+    <div class="row">
+      <button class="btn ghost" id="homeBtn">다른 게임</button>
+      <button class="btn primary" id="againBtn">다시 도전</button>
+    </div>
+    <div class="card rankcard">
+      <h3>🏆 ${g.name}${playLevel ? ` · ${playLevel}` : ''} TOP 10</h3>
+      <div id="rankBody"></div>
+    </div>`;
+  tone([523, 659, 784, 1047], 0.13);
+  document.getElementById('homeBtn').onclick = showHome;
+  document.getElementById('againBtn').onclick = () => g.start();
+  const body = document.getElementById('rankBody');
+  const send = name => {
+    body.innerHTML = '<p class="sub" style="text-align:center">기록을 올리는 중…</p>';
+    Rank.submit({ game: g.id, name, score, level: playLevel, dur }).then(({ top, rank }) => {
+      if (t !== token) return;
+      const head = rank === 1 ? `<span class="badge rank">👑 1위 달성! 최고 기록이에요!</span>`
+        : rank <= 10 ? `<span class="badge rank">🎉 TOP 10 진입! ${rank}위에 올랐어요</span><div class="chal">1위까지 ${fmt(top[0].score - score + 1)}점 남았어요</div>`
+        : `<div class="chal">TOP 10까지 <b>${fmt(top[9].score - score + 1)}점</b> 남았어요. 다시 도전해 보세요!</div>`;
+      body.innerHTML = `<div style="text-align:center;margin-bottom:8px">${head}</div>` + topList(top, rank <= 10 ? rank - 1 : -1);
+      if (rank <= 3) tone([784, 988, 1175, 1568], 0.12);
+    }).catch(() => {
+      if (t !== token) return;
+      body.innerHTML = '<p class="sub" style="text-align:center">랭킹 서버에 연결하지 못했어요. 기록은 이 기기에 저장됐어요.</p>' + topList(Rank.local(g.id, playLevel).slice(0, 10));
+    });
+  };
+  if (getName()) send(getName());
+  else nameForm(body, send, '이 점수를 랭킹에 올려 볼까요?');
+}
+const starsByRatio = r => r >= 0.9 ? 3 : r >= 0.6 ? 2 : 1;
+
+/* ---------- 객관식 공통 진행 ---------- */
+function makeQ(prompt, answer, wrongs, extra = {}) {
+  const options = shuffle([answer, ...wrongs]);
+  return Object.assign({ prompt, options, answer: options.indexOf(answer), answerText: answer }, extra);
+}
+function runQuiz(g, qs, opt = {}) {
+  const stage = gameFrame(g);
+  let i = 0, score = 0, points = 0, qStart = 0, locked = false;
+  function show() {
+    locked = false; qStart = Date.now();
+    const q = qs[i];
+    setProg(`${i + 1} / ${qs.length}`);
+    stage.innerHTML = `
+      <div class="card">${q.prompt}</div>
+      <div class="options ${opt.cols2 ? 'cols2' : ''}">
+        ${q.options.map((o, k) => `<button class="opt" data-k="${k}">${opt.label ? opt.label(o) : o}</button>`).join('')}
+      </div>
+      <div id="after"></div>`;
+    stage.querySelectorAll('.opt').forEach(b => b.onclick = () => choose(+b.dataset.k));
+  }
+  function choose(k) {
+    if (locked) return; locked = true;
+    const q = qs[i], btns = [...stage.querySelectorAll('.opt')];
+    btns.forEach(b => b.disabled = true);
+    btns[q.answer].classList.add('right');
+    if (k === q.answer) {
+      // 정답 100점 + 빨리 맞힐수록 최대 50점 추가
+      points += 100 + Math.max(0, Math.round(50 - (Date.now() - qStart) / 1000 * 3));
+      score++; feedback(true); toast(pick(PRAISE));
+      if (q.explain) document.getElementById('after').innerHTML = `<div class="answer-box">${q.explain}</div>`;
+      later(next, q.explain ? 1500 : 900);
+    } else {
+      btns[k].classList.add('wrong', 'shake'); feedback(false);
+      document.getElementById('after').innerHTML = `
+        <div class="answer-box">정답: <b>${q.answerText}</b>${q.explain ? '<br>' + q.explain : ''}</div>
+        <button class="btn primary" id="nextBtn">${i + 1 < qs.length ? '다음 문제' : '결과 보기'}</button>`;
+      document.getElementById('nextBtn').onclick = next;
+    }
+  }
+  function next() {
+    i++;
+    if (i < qs.length) show();
+    else finish(g, {
+      stars: starsByRatio(score / qs.length), title: `${qs.length}문제 중 ${score}문제 맞히셨어요`,
+      detail: opt.doneText ? opt.doneText() : '', score: points * (opt.mult || 1),
+    });
+  }
+  show();
+}
+
+/* ---------- 1. 오늘의 질문 ---------- */
+function startToday() {
+  const g = byId('today');
+  showIntro(g, `<p>오늘 날짜와 요일, 계절을 떠올려 답해 보세요.</p><p>달력이나 휴대폰 시계를 보지 않고 기억으로 맞혀 보세요.</p>`, null, () => {
+    const d = new Date(), y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+    const W = ['일', '월', '화', '수', '목', '금', '토'];
+    const season = m >= 3 && m <= 5 ? '봄' : m >= 6 && m <= 8 ? '여름' : m >= 9 && m <= 11 ? '가을' : '겨울';
+    const near = (v, min, max) => {
+      const s = new Set();
+      shuffle([-3, -2, -1, 1, 2, 3, 4, -4]).forEach(dv => { const c = v + dv; if (s.size < 3 && c >= min && c <= max) s.add(c); });
+      return [...s];
+    };
+    const Q = t => `<div class="q">${t}</div>`;
+    const qs = [
+      makeQ(Q('올해는 몇 년인가요?'), y + '년', [y - 2, y - 1, y + 1].map(v => v + '년')),
+      makeQ(Q('지금은 몇 월인가요?'), m + '월', near(m, 1, 12).map(v => v + '월')),
+      makeQ(Q('오늘은 며칠인가요?'), day + '일', near(day, 1, 31).map(v => v + '일')),
+      makeQ(Q('오늘은 무슨 요일인가요?'), W[d.getDay()] + '요일', shuffle(W.filter((_, i) => i !== d.getDay())).slice(0, 3).map(w => w + '요일')),
+      makeQ(Q('지금은 어느 계절인가요?'), season, ['봄', '여름', '가을', '겨울'].filter(s => s !== season)),
+      makeQ(Q('지금은 오전인가요, 오후인가요?'), d.getHours() < 12 ? '오전' : '오후', [d.getHours() < 12 ? '오후' : '오전']),
+    ];
+    runQuiz(g, qs, { cols2: true, doneText: () => `오늘은 ${y}년 ${m}월 ${day}일 ${W[d.getDay()]}요일, ${season}이에요.` });
+  });
+}
+
+/* ---------- 2. 짝 맞추기 ---------- */
+function startPair() {
+  showIntro(byId('pair'), `<p>뒤집힌 카드를 두 장씩 눌러 보세요.</p><p>같은 그림이면 짝이 맞고, 다르면 다시 뒤집혀요. 그림 자리를 기억해 두세요.</p>`,
+    [{ label: '쉬움', sub: '카드 8장', v: 4 }, { label: '보통', sub: '카드 12장', v: 6 }, { label: '어려움', sub: '카드 16장', v: 8 }], playPair);
+}
+function playPair(n) {
+  const g = byId('pair'), stage = gameFrame(g);
+  const pool = shuffle(['🍎', '🍌', '🍇', '🍓', '🍉', '🍑', '🌻', '🌷', '🐶', '🐱', '🐰', '🐻', '🚗', '⛵', '☂️', '🎈']).slice(0, n);
+  const cards = shuffle([...pool, ...pool]);
+  let first = null, lock = false, found = 0, tries = 0;
+  setProg(`짝 0 / ${n}`);
+  stage.innerHTML = `<p class="guide">같은 그림 두 장을 찾아보세요.</p>
+    <div class="pairs">${cards.map((c, i) => `<button class="pcard" data-i="${i}" aria-label="카드 ${i + 1}"><span class="front">${c}</span><span class="back">?</span></button>`).join('')}</div>`;
+  stage.querySelectorAll('.pcard').forEach(b => b.onclick = () => {
+    if (lock || b.classList.contains('open')) return;
+    b.classList.add('open');
+    if (!first) { first = b; return; }
+    tries++;
+    const a = first; first = null;
+    if (cards[a.dataset.i] === cards[b.dataset.i]) {
+      a.classList.add('done'); b.classList.add('done');
+      found++; feedback(true); setProg(`짝 ${found} / ${n}`);
+      if (found === n) later(() => {
+        const stars = tries <= n * 1.6 ? 3 : tries <= n * 2.5 ? 2 : 1, sec = playSec();
+        finish(g, { stars, title: `${n}쌍을 모두 찾으셨어요!`, detail: `${tries}번 뒤집어서 ${sec}초 만에 찾았어요.`,
+          score: n * 200 - (tries - n) * 30 - sec * 3 });
+      }, 800);
+    } else {
+      lock = true;
+      later(() => { a.classList.remove('open'); b.classList.remove('open'); lock = false; }, 1100);
+    }
+  });
+}
+
+/* ---------- 3. 색깔 낱말 ---------- */
+const COLORS = [
+  { n: '빨강', c: '#d93025' }, { n: '파랑', c: '#1a5fd0' },
+  { n: '초록', c: '#1e8e3e' }, { n: '보라', c: '#8430ce' },
+];
+function startColor() {
+  const g = byId('color');
+  const ex = `<span style="color:#1a5fd0;font-weight:900;font-size:1.3rem">빨강</span>`;
+  showIntro(g, `<p><b>쉬움</b> — <b>글자의 색깔</b>을 고르세요.<br>예) ${ex} → 파란색으로 쓰였으니 <b>파랑</b>이 정답</p>
+    <p><b>어려움</b> — <b>글자의 뜻</b>에 맞는 색깔을 고르세요.<br>예) ${ex} → 파란색으로 쓰였어도 '빨강'이라고 쓰여 있으니 <b>빨강</b>이 정답</p>
+    <p>모두 10문제예요.</p>`,
+    [{ label: '쉬움', sub: '글자 색 고르기', v: 'ink' }, { label: '어려움', sub: '글자 뜻 고르기', v: 'word' }], mode => {
+    const qs = [];
+    for (let i = 0; i < 10; i++) {
+      const word = pick(COLORS);
+      const ink = (i < 2 || Math.random() < 0.25) ? word : pick(COLORS.filter(c => c !== word));
+      const ans = mode === 'word' ? word : ink;
+      const options = COLORS.map(c => c.n);
+      qs.push({
+        prompt: mode === 'word'
+          ? `<div class="sub">글자의 <b>뜻</b>에 맞는 색깔을 고르세요</div><div class="stroop" style="color:${ink.c}">${word.n}</div>`
+          : `<div class="sub">글자의 <b>색깔</b>을 고르세요</div><div class="stroop" style="color:${ink.c}">${word.n}</div>`,
+        options, answer: options.indexOf(ans.n), answerText: ans.n,
+      });
+    }
+    runQuiz(g, qs, { cols2: true, label: name => `<span class="sw" style="background:${COLORS.find(c => c.n === name).c}"></span>${name}` });
+  });
+}
+
+/* ---------- 4. 장보기 기억 ---------- */
+const GOODS = [['🍎', '사과'], ['🥕', '당근'], ['🥚', '달걀'], ['🥛', '우유'], ['🐟', '생선'], ['🍞', '빵'], ['🧅', '양파'], ['🍌', '바나나'], ['🍇', '포도'], ['🥬', '배추'], ['🧀', '치즈'], ['🍗', '닭고기'], ['🍉', '수박'], ['🌶️', '고추'], ['🥔', '감자'], ['🍓', '딸기'], ['🍊', '귤'], ['🧄', '마늘'], ['🍄', '버섯'], ['🌽', '옥수수']];
+function startShop() {
+  showIntro(byId('shop'), `<p>장바구니에 담을 물건을 먼저 보여 드려요. 천천히 기억한 뒤 <b>다 외웠어요</b>를 누르세요.</p><p>그다음 여러 물건 중에서 장바구니에 있던 물건만 골라 주세요. 모두 3번 장을 봐요.</p>`,
+    [{ label: '쉬움', sub: '물건 3개', v: 3 }, { label: '보통', sub: '물건 5개', v: 5 }, { label: '어려움', sub: '물건 7개', v: 7 }], playShop);
+}
+function playShop(k) {
+  const g = byId('shop'), stage = gameFrame(g), R = 3;
+  let round = 0, total = 0, perfect = 0, targets = [];
+  const item = (x, tag, attr = '') => `<${tag} class="good" ${attr}><span class="ge">${x[0]}</span><span>${x[1]}</span></${tag}>`;
+  function memorize() {
+    round++; setProg(`${round} / ${R}`);
+    targets = shuffle(GOODS).slice(0, k);
+    stage.innerHTML = `
+      <div class="card"><div class="q">🧺 장바구니에 담을 물건이에요.<br>잘 기억해 두세요!</div></div>
+      <div class="goods mem">${targets.map(x => item(x, 'div')).join('')}</div>
+      <button class="btn primary" id="memBtn">다 외웠어요</button>`;
+    document.getElementById('memBtn').onclick = choose;
+  }
+  function choose() {
+    const size = k === 3 ? 9 : k === 5 ? 12 : 15;
+    const opts = shuffle([...targets, ...shuffle(GOODS.filter(x => !targets.includes(x))).slice(0, size - k)]);
+    const sel = new Set();
+    stage.innerHTML = `
+      <div class="card"><div class="q">장바구니에 있던 물건 <b>${k}개</b>를 골라 주세요.</div><div class="sub" id="cnt">0 / ${k}개 골랐어요</div></div>
+      <div class="goods">${opts.map((x, i) => item(x, 'button', `data-i="${i}"`)).join('')}</div>
+      <button class="btn primary" id="chkBtn" disabled>확인</button>`;
+    const btns = [...stage.querySelectorAll('.good')], chk = document.getElementById('chkBtn');
+    btns.forEach(b => b.onclick = () => {
+      const i = +b.dataset.i;
+      if (sel.has(i)) sel.delete(i); else if (sel.size < k) sel.add(i); else { b.classList.add('shake'); later(() => b.classList.remove('shake'), 300); return; }
+      b.classList.toggle('on', sel.has(i));
+      document.getElementById('cnt').textContent = `${sel.size} / ${k}개 골랐어요`;
+      chk.disabled = sel.size !== k;
+    });
+    chk.onclick = () => {
+      let c = 0;
+      btns.forEach((b, i) => {
+        b.disabled = true; b.classList.remove('on');
+        const isT = targets.includes(opts[i]);
+        if (sel.has(i) && isT) { b.classList.add('right'); c++; }
+        else if (sel.has(i)) b.classList.add('wrong');
+        else if (isT) b.classList.add('missed');
+      });
+      total += c; feedback(c === k);
+      if (c === k) { perfect++; toast(pick(PRAISE)); }
+      chk.remove();
+      stage.insertAdjacentHTML('beforeend', `
+        <div class="answer-box">${k}개 중 <b>${c}개</b>를 기억하셨어요.${c < k ? '<br>점선 칸이 놓친 물건이에요.' : ''}</div>
+        <button class="btn primary" id="nextBtn">${round < R ? '다음 장보기' : '결과 보기'}</button>`);
+      document.getElementById('nextBtn').onclick = () => round < R ? memorize() : finish(g, {
+        stars: starsByRatio(total / (k * R)), title: `${k * R}개 중 ${total}개를 기억하셨어요`,
+        detail: `모두 맞힌 장보기 ${perfect}번 (번당 보너스 100점)`, score: total * 100 + perfect * 100,
+      });
+    };
+  }
+  memorize();
+}
+
+/* ---------- 5. 시장 계산 ---------- */
+const MARKET = [
+  { n: '사과', u: '개', min: 7, max: 15 }, { n: '두부', u: '모', min: 15, max: 25 },
+  { n: '우유', u: '팩', min: 20, max: 30 }, { n: '대파', u: '단', min: 20, max: 35 },
+  { n: '라면', u: '봉지', min: 8, max: 12 }, { n: '콩나물', u: '봉지', min: 10, max: 20 },
+  { n: '귤', u: '봉지', min: 30, max: 60 }, { n: '달걀', u: '판', min: 50, max: 80 },
+];
+function startCalc() {
+  showIntro(byId('calc'), `<p>시장에서 장을 본 값을 계산해 보세요.</p><p>종이와 연필을 써도 좋아요. 모두 5문제예요.</p>`,
+    [{ label: '쉬움', sub: '한 가지 물건', v: 0 }, { label: '보통', sub: '두 가지 합계', v: 1 }, { label: '어려움', sub: '거스름돈', v: 2 }], playCalc);
+}
+function wrongNums(ans) {
+  const out = [];
+  shuffle([100, 200, 300, 500, 1000, -100, -200, -300, -500, -1000]).forEach(d => {
+    if (out.length < 3 && ans + d > 0) out.push(ans + d);
+  });
+  return out;
+}
+function playCalc(level) {
+  const qs = [];
+  for (let i = 0; i < 5; i++) {
+    const [a, b] = shuffle(MARKET);
+    const pa = rand(a.min, a.max) * 100, pb = rand(b.min, b.max) * 100;
+    if (level === 0) {
+      const q = rand(2, 4), ans = pa * q;
+      qs.push(makeQ(`<div class="q">${a.n} 1${a.u}에 <b>${won(pa)}</b>이에요.<br>${a.n} ${q}${a.u}는 모두 얼마일까요?</div>`,
+        won(ans), wrongNums(ans).map(won), { explain: `${won(pa)} × ${q} = ${won(ans)}` }));
+    } else {
+      const qa = rand(1, 3), qb = rand(1, 2), sum = pa * qa + pb * qb;
+      const receipt = `<div class="receipt">
+        <div class="ln"><span>${a.n} (1${a.u} ${won(pa)})</span><b>${qa}${a.u}</b></div>
+        <div class="ln"><span>${b.n} (1${b.u} ${won(pb)})</span><b>${qb}${b.u}</b></div></div>`;
+      const calcText = `${won(pa)} × ${qa} + ${won(pb)} × ${qb} = ${won(sum)}`;
+      if (level === 1) {
+        qs.push(makeQ(`${receipt}<div class="q">모두 얼마일까요?</div>`, won(sum), wrongNums(sum).map(won), { explain: calcText }));
+      } else {
+        const bill = [10000, 20000, 50000].find(v => v > sum) || 100000, ch = bill - sum;
+        qs.push(makeQ(`${receipt}<div class="q"><b>${won(bill)}</b>을 냈어요.<br>거스름돈은 얼마일까요?</div>`, won(ch), wrongNums(ch).map(won),
+          { explain: `합계 ${won(sum)}, ${won(bill)} − ${won(sum)} = ${won(ch)}` }));
+      }
+    }
+  }
+  runQuiz(byId('calc'), qs, { cols2: true, mult: [1, 1.5, 2][level] });
+}
+
+/* ---------- 6. 다른 그림 찾기 ---------- */
+const DIFF_ICONS = ['🌳', '🌸', '🏠', '☀️', '🐟', '🐦', '🚲', '⛵', '🍎', '🌙', '⭐', '🐢', '🍄', '🎈', '🐝', '🌼', '☁️', '🐌', '🐞', '🍓'];
+function startDiff() {
+  showIntro(byId('diff'), `<p>위의 <b>원래 그림</b>과 아래의 <b>바뀐 그림</b>을 비교해 보세요.</p><p>다른 칸을 찾으면 눌러 주세요. 어려우면 <b>힌트 보기</b>를 누르세요. 모두 3판이에요.</p>`,
+    [{ label: '쉬움', sub: '3×3, 2곳', v: [3, 2] }, { label: '보통', sub: '4×4, 3곳', v: [4, 3] }, { label: '어려움', sub: '5×5, 4곳', v: [5, 4] }], playDiff);
+}
+function playDiff([n, k]) {
+  const g = byId('diff'), stage = gameFrame(g), R = 3;
+  const fs = { 3: '2.3rem', 4: '1.75rem', 5: '1.35rem' }[n];
+  let round = 0, misses = 0, hints = 0, base, changed, diff, found;
+  function newRound() {
+    round++; found = new Set();
+    base = Array.from({ length: n * n }, () => pick(DIFF_ICONS));
+    changed = base.slice();
+    diff = shuffle([...Array(n * n).keys()]).slice(0, k);
+    diff.forEach(i => { let c; do { c = pick(DIFF_ICONS); } while (c === base[i]); changed[i] = c; });
+    const grid = arr => `<div class="dgrid" style="--n:${n}">${arr.map((c, i) => `<button class="dcell" data-i="${i}" style="font-size:${fs}">${c}</button>`).join('')}</div>`;
+    stage.innerHTML = `
+      <p class="guide">다른 곳 <b>${k}군데</b>를 찾아 누르세요.</p>
+      <div class="dlabel">원래 그림</div>${grid(base)}
+      <div class="dlabel">바뀐 그림</div>${grid(changed)}
+      <button class="btn ghost" id="hintBtn">💡 힌트 보기</button>`;
+    upd();
+    stage.querySelectorAll('.dcell').forEach(b => b.onclick = () => tap(+b.dataset.i, b));
+    document.getElementById('hintBtn').onclick = hint;
+  }
+  const cellsAt = i => stage.querySelectorAll(`.dcell[data-i="${i}"]`);
+  const upd = () => setProg(`${round}판 · ${found.size}/${k}`);
+  function tap(i, b) {
+    if (found.size === k || found.has(i)) return;
+    if (diff.includes(i)) {
+      found.add(i); cellsAt(i).forEach(c => c.classList.add('found'));
+      feedback(true); upd();
+      if (found.size === k) {
+        toast(round < R ? '모두 찾았어요! 👏' : '다 찾았어요! 🎉');
+        later(() => {
+          if (round < R) return newRound();
+          const sec = playSec(), mult = { 2: 1, 3: 1.5, 4: 2 }[k];
+          finish(g, {
+            stars: misses + hints * 2 <= 2 ? 3 : misses + hints * 2 <= 6 ? 2 : 1, title: `${R}판을 모두 끝내셨어요!`,
+            detail: `${sec}초 · 잘못 누름 ${misses}번 · 힌트 ${hints}번`,
+            score: k * R * 100 * mult - misses * 30 - hints * 80 + Math.max(0, 300 - sec * 2),
+          });
+        }, 1100);
+      }
+    } else {
+      misses++; feedback(false);
+      b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake');
+    }
+  }
+  function hint() {
+    const left = diff.filter(i => !found.has(i));
+    if (!left.length) return;
+    hints++;
+    const i = pick(left);
+    cellsAt(i).forEach(c => { c.classList.remove('flash'); void c.offsetWidth; c.classList.add('flash'); });
+  }
+  newRound();
+}
+
+/* ---------- 7. 속담 완성 ---------- */
+// [앞부분, 정답, 뒷부분, 오답 3개]
+const PROVERBS = [
+  ['가는 말이 고와야 ', '오는', ' 말이 곱다', ['하는', '듣는', '지난']],
+  ['낮말은 새가 듣고 밤말은 ', '쥐', '가 듣는다', ['소', '개', '닭']],
+  ['원숭이도 ', '나무', '에서 떨어진다', ['지붕', '사다리', '담장']],
+  ['', '백지장', '도 맞들면 낫다', ['돌덩이', '이불', '종이컵']],
+  ['세 살 버릇 ', '여든', '까지 간다', ['스물', '마흔', '예순']],
+  ['소 잃고 ', '외양간', ' 고친다', ['대문', '지붕', '울타리']],
+  ['티끌 모아 ', '태산', '', ['부자', '동산', '모래성']],
+  ['발 없는 말이 ', '천 리', ' 간다', ['백 리', '십 리', '만 리']],
+  ['고래 싸움에 ', '새우', ' 등 터진다', ['멸치', '게', '조개']],
+  ['콩 심은 데 콩 나고 팥 심은 데 ', '팥', ' 난다', ['콩', '쌀', '보리']],
+  ['', '돌다리', '도 두들겨 보고 건너라', ['나무다리', '징검다리', '구름다리']],
+  ['우물 안 ', '개구리', '', ['올챙이', '물고기', '두꺼비']],
+  ['', '등잔', ' 밑이 어둡다', ['책상', '촛불', '가로등']],
+  ['하늘이 무너져도 솟아날 ', '구멍', '이 있다', ['길', '문', '방']],
+  ['', '호랑이', '도 제 말 하면 온다', ['사자', '도깨비', '여우']],
+  ['빈 수레가 ', '요란하다', '', ['조용하다', '무겁다', '빠르다']],
+  ['될성부른 나무는 ', '떡잎', '부터 알아본다', ['뿌리', '열매', '가지']],
+  ['금강산도 ', '식후경', '', ['구경', '유람', '산책']],
+  ['서당 개 ', '삼 년', '이면 풍월을 읊는다', ['한 달', '일 년', '십 년']],
+  ['사공이 많으면 배가 ', '산', '으로 간다', ['강', '섬', '숲']],
+  ['뛰는 놈 위에 ', '나는', ' 놈 있다', ['기는', '걷는', '자는']],
+  ['꿩 대신 ', '닭', '', ['오리', '참새', '비둘기']],
+  ['아니 땐 굴뚝에 ', '연기', ' 날까', ['불', '먼지', '냄새']],
+  ['개구리 ', '올챙이', ' 적 생각 못 한다', ['어릴', '아기', '알']],
+  ['낫 놓고 ', '기역', '자도 모른다', ['니은', '디귿', '미음']],
+  ['믿는 도끼에 ', '발등', ' 찍힌다', ['손등', '무릎', '발가락']],
+  ['열 번 찍어 안 넘어가는 ', '나무', ' 없다', ['바위', '기둥', '담']],
+  ['가랑비에 ', '옷', ' 젖는 줄 모른다', ['신발', '머리', '이불']],
+  ['누워서 ', '떡', ' 먹기', ['밥', '죽', '국수']],
+];
+function startProverb() {
+  const g = byId('proverb');
+  showIntro(g, `<p>빈칸에 들어갈 알맞은 말을 골라 속담을 완성해 보세요.</p><p>모두 5문제예요.</p>`, null, () => {
+    const qs = shuffle(PROVERBS).slice(0, 5).map(([a, ans, b, w]) =>
+      makeQ(`<div class="q" style="font-size:1.3rem">${a}<span style="display:inline-block;min-width:3em;border-bottom:3px solid var(--accent);color:var(--accent-d)">&nbsp;?&nbsp;</span>${b}</div>`,
+        ans, w, { explain: `「${a}${ans}${b}」` }));
+    runQuiz(g, qs, { cols2: true });
+  });
+}
+
+/* ---------- 8. 그림 조각 맞추기 ---------- */
+function drawScene(kind) {
+  const S = 600, cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const x = cv.getContext('2d');
+  const circle = (cx, cy, r, c) => { x.fillStyle = c; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); };
+  const poly = (pts, c) => { x.fillStyle = c; x.beginPath(); pts.forEach(([a, b], i) => i ? x.lineTo(a, b) : x.moveTo(a, b)); x.closePath(); x.fill(); };
+  const sky = (c1, c2, h) => { const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, c1); gr.addColorStop(1, c2); x.fillStyle = gr; x.fillRect(0, 0, S, h); };
+  const cloud = (cx, cy) => { circle(cx, cy, 30, '#fff'); circle(cx + 35, cy - 12, 38, '#fff'); circle(cx + 72, cy, 30, '#fff'); };
+  if (kind === 0) { // 언덕 위의 집
+    sky('#7cc8f7', '#dff2ff', 420);
+    circle(490, 105, 58, '#ffcc33');
+    x.strokeStyle = '#ffcc33'; x.lineWidth = 8;
+    for (let a = 0; a < 12; a++) { const t = a * Math.PI / 6; x.beginPath(); x.moveTo(490 + Math.cos(t) * 72, 105 + Math.sin(t) * 72); x.lineTo(490 + Math.cos(t) * 92, 105 + Math.sin(t) * 92); x.stroke(); }
+    cloud(70, 120); cloud(250, 80);
+    x.fillStyle = '#8fd47d'; x.beginPath(); x.ellipse(300, 600, 460, 230, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#6dbb5c'; x.fillRect(0, 500, S, 100);
+    x.fillStyle = '#f4a261'; x.fillRect(140, 300, 230, 190);
+    poly([[115, 305], [255, 190], [395, 305]], '#c0392b');
+    x.fillStyle = '#7a4b2a'; x.fillRect(230, 385, 55, 105);
+    x.fillStyle = '#fff6b8'; x.fillRect(165, 330, 50, 50); x.fillRect(300, 330, 50, 50);
+    x.strokeStyle = '#7a4b2a'; x.lineWidth = 5; x.strokeRect(165, 330, 50, 50); x.strokeRect(300, 330, 50, 50);
+    poly([[232, 490], [283, 490], [330, 600], [190, 600]], '#ead6a6');
+    x.fillStyle = '#8b5a2b'; x.fillRect(455, 330, 30, 160);
+    circle(470, 300, 62, '#2e8b57'); circle(430, 330, 42, '#2e8b57'); circle(510, 335, 42, '#3a9d63');
+    [[60, 540, '#e74c3c'], [110, 560, '#f1c40f'], [400, 555, '#e84393'], [540, 545, '#9b59b6'], [570, 580, '#f39c12']].forEach(([a, b, c]) => { circle(a, b, 13, c); circle(a, b, 5, '#fff'); });
+  } else if (kind === 1) { // 노을 지는 바다
+    sky('#ff9a76', '#ffe0b2', 340);
+    circle(300, 340, 80, '#ff6f3c');
+    cloud(60, 110); cloud(400, 70);
+    const sea = x.createLinearGradient(0, 330, 0, S); sea.addColorStop(0, '#3d8fd6'); sea.addColorStop(1, '#16467e');
+    x.fillStyle = sea; x.fillRect(0, 335, S, S - 335);
+    x.fillStyle = '#e6c27a'; x.beginPath(); x.ellipse(520, 350, 110, 32, 0, Math.PI, 0); x.fill();
+    x.fillStyle = '#7a4b2a'; x.fillRect(525, 245, 10, 80);
+    circle(530, 245, 26, '#2e8b57'); circle(505, 255, 18, '#2e8b57'); circle(555, 255, 18, '#2e8b57');
+    x.strokeStyle = 'rgba(255,255,255,.75)'; x.lineWidth = 5;
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 4; c++) { const wx = c * 160 + (r % 2) * 80, wy = 395 + r * 45; x.beginPath(); x.arc(wx, wy, 22, Math.PI * 1.1, Math.PI * 1.9); x.stroke(); }
+    poly([[130, 450], [350, 450], [315, 505], [165, 505]], '#7a3e1d');
+    x.fillStyle = '#5a2e12'; x.fillRect(236, 260, 8, 190);
+    poly([[248, 270], [248, 440], [340, 440]], '#ffffff');
+    poly([[230, 290], [230, 440], [160, 440]], '#ffd54f');
+    x.strokeStyle = '#3b3b3b'; x.lineWidth = 4;
+    [[110, 210], [160, 180], [450, 170]].forEach(([a, b]) => { x.beginPath(); x.arc(a - 14, b, 14, Math.PI * 1.15, Math.PI * 1.9); x.arc(a + 14, b, 14, Math.PI * 1.1, Math.PI * 1.85); x.stroke(); });
+  } else { // 무지개 꽃밭
+    sky('#a8dcff', '#e8f6ff', 440);
+    ['#e74c3c', '#f39c12', '#f1c40f', '#2ecc71', '#3498db', '#8e44ad'].forEach((c, i) => {
+      x.strokeStyle = c; x.lineWidth = 16; x.beginPath(); x.arc(300, 450, 260 - i * 16, Math.PI, 0); x.stroke();
+    });
+    circle(70, 70, 45, '#ffcc33'); cloud(430, 90);
+    x.fillStyle = '#7ccf6b'; x.fillRect(0, 430, S, 170);
+    x.fillStyle = '#5fb352'; x.beginPath(); x.ellipse(300, 600, 360, 90, 0, Math.PI, 0); x.fill();
+    [[70, 470, '#e84393'], [170, 510, '#f1c40f'], [290, 480, '#e74c3c'], [400, 520, '#9b59b6'], [520, 475, '#ff7f50']].forEach(([a, b, c]) => {
+      x.strokeStyle = '#2e7d32'; x.lineWidth = 6; x.beginPath(); x.moveTo(a, b); x.lineTo(a, b + 80); x.stroke();
+      for (let p = 0; p < 6; p++) { const t = p * Math.PI / 3; circle(a + Math.cos(t) * 22, b + Math.sin(t) * 22, 16, c); }
+      circle(a, b, 12, '#ffe066');
+    });
+    x.fillStyle = '#ff9ff3'; x.beginPath(); x.ellipse(462, 300, 24, 16, -0.5, 0, Math.PI * 2); x.ellipse(498, 300, 24, 16, 0.5, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#5a3d2b'; x.fillRect(477, 285, 6, 32);
+  }
+  return cv.toDataURL('image/png');
+}
+function startPuzzle() {
+  showIntro(byId('puzzle'), `<p>그림이 여러 조각으로 섞여 있어요.</p><p>조각 하나를 누르고, 바꿀 자리의 조각을 누르면 <b>두 조각의 자리가 바뀌어요</b>. 작은 완성 그림을 보며 맞춰 보세요.</p>`,
+    [{ label: '쉬움', sub: '4조각', v: 2 }, { label: '보통', sub: '9조각', v: 3 }, { label: '어려움', sub: '16조각', v: 4 }], playPuzzle);
+}
+function playPuzzle(n) {
+  const g = byId('puzzle'), stage = gameFrame(g);
+  const img = drawScene(rand(0, 2));
+  let order = shuffle([...Array(n * n).keys()]);
+  while (order.every((v, i) => v === i)) order = shuffle(order);
+  let sel = null, moves = 0, done = false;
+  stage.innerHTML = `
+    <div class="pz-top"><img class="pz-thumb" src="${img}" alt="완성 그림"><p class="guide">왼쪽 완성 그림처럼 맞춰 보세요.<br>두 조각을 차례로 누르면 자리가 바뀌어요.</p></div>
+    <div class="pz" style="--n:${n}"></div>`;
+  const board = stage.querySelector('.pz');
+  board.style.setProperty('--img', `url(${img})`);
+  function render() {
+    board.innerHTML = order.map((piece, pos) => {
+      const r = Math.floor(piece / n), c = piece % n;
+      return `<button class="pc ${sel === pos ? 'sel' : ''}" data-pos="${pos}" aria-label="조각 ${pos + 1}" style="background-size:${n * 100}% ${n * 100}%;background-position:${c / (n - 1) * 100}% ${r / (n - 1) * 100}%"></button>`;
+    }).join('');
+    setProg(`${moves}번 옮김`);
+  }
+  board.onclick = e => {
+    const b = e.target.closest('.pc');
+    if (!b || done) return;
+    const p = +b.dataset.pos;
+    if (sel === null) sel = p;
+    else if (sel === p) sel = null;
+    else {
+      [order[sel], order[p]] = [order[p], order[sel]];
+      moves++;
+      if (order[p] === p || order[sel] === sel) feedback(true);
+      sel = null;
+    }
+    render();
+    if (order.every((v, i) => v === i)) {
+      done = true; board.classList.add('solved'); toast('그림 완성! 🎉');
+      const best = n * n - 1;
+      const sec = playSec();
+      later(() => finish(g, {
+        stars: moves <= best + 1 ? 3 : moves <= best * 2 ? 2 : 1, title: `${n * n}조각 그림을 완성하셨어요!`,
+        detail: `${moves}번 옮겨서 ${sec}초 만에 맞췄어요.`,
+        score: n * n * 100 - Math.max(0, moves - best) * 20 + Math.max(0, 300 - sec * 2),
+      }), 1500);
+    }
+  };
+  render();
+}
+
+/* ---------- 30분 휴식 안내 ---------- */
+(function breakReminder() {
+  // 주소 끝에 ?breaktest 를 붙이면 15초 뒤에 안내가 떠서 시험해 볼 수 있음
+  const LIMIT = /[?&]breaktest/.test(location.search) ? 15000 : 30 * 60 * 1000;
+  let played = 0, open = false, last = Date.now();
+  try { played = +sessionStorage.getItem('mallang.played') || 0; } catch (e) {}
+  setInterval(() => {
+    const now = Date.now(), dt = Math.min(now - last, 5000); last = now;
+    if (document.hidden || open) return;
+    played += dt;
+    try { sessionStorage.setItem('mallang.played', played); } catch (e) {}
+    if (played >= LIMIT) { played = 0; show(); }
+  }, 1000);
+  function show() {
+    open = true;
+    const ov = document.createElement('div');
+    ov.className = 'break';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-modal', 'true');
+    ov.innerHTML = `<div class="box">
+      <div class="ic">☕</div>
+      <h2>잠시 쉬어 갈까요?</h2>
+      <p>30분 동안 열심히 두뇌 운동을 하셨어요.</p>
+      <p>먼 곳을 바라보며 눈을 쉬고,<br>물 한 잔 드시고, 어깨를 가볍게 돌려 보세요.</p>
+      <div class="tap">화면을 누르면 닫혀요</div></div>`;
+    document.body.appendChild(ov);
+    tone([523, 659, 523], 0.18);
+    const shownAt = Date.now();
+    const close = e => {
+      e.preventDefault(); e.stopPropagation();
+      if (Date.now() - shownAt < 600) return; // 게임 중 누르던 손가락에 바로 닫히지 않도록
+      ov.remove(); open = false; last = Date.now();
+      document.removeEventListener('keydown', close, true);
+    };
+    ov.addEventListener('click', close);
+    document.addEventListener('keydown', close, true);
+  }
+})();
+
+showHome();
+</script>
+</body>
+</html>
