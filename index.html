@@ -90,8 +90,15 @@ h1,h2{margin:0}
 .pcard.done{background:var(--good-bg);box-shadow:0 0 0 3px var(--good) inset;transform:none}
 
 /* 색깔 낱말 */
+.ask{font-size:1.05rem;font-weight:700;background:var(--bg);border:2px solid var(--line);border-radius:14px;padding:8px 10px;line-height:1.5}
+.ask span{display:block;color:var(--bad);font-weight:900;font-size:.9rem}
+.ask.changed{border-color:var(--bad);animation:shake .4s}
 .stroop{font-size:3.4rem;font-weight:900;margin:10px 0 4px;letter-spacing:4px}
 .sw{width:30px;height:30px;border-radius:50%;flex:none}
+.tbar{height:12px;background:var(--line);border-radius:99px;overflow:hidden;margin-top:12px}
+.tbar i{display:block;height:100%;width:100%;background:var(--accent);border-radius:99px;animation:tbar linear forwards}
+.tbar.stop i{animation-play-state:paused}
+@keyframes tbar{from{width:100%}to{width:0}}
 
 /* 장보기 */
 .goods{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
@@ -524,10 +531,13 @@ function runQuiz(g, qs, opt = {}) {
   let i = 0, score = 0, points = 0, qStart = 0, locked = false;
   function show() {
     locked = false; qStart = Date.now();
-    const q = qs[i];
+    const q = qs[i], qi = i;
     setProg(`${i + 1} / ${qs.length}`);
+    // opt.limit: 문제당 제한 시간(초). 시간이 지나면 틀린 것으로 처리
+    const bar = opt.limit ? `<div class="tbar" id="tbar"><i style="animation-duration:${opt.limit}s"></i></div>` : '';
+    if (opt.limit) later(() => { if (i === qi && !locked) choose(-1); }, opt.limit * 1000);
     stage.innerHTML = `
-      <div class="card">${q.prompt}</div>
+      <div class="card">${q.prompt}${bar}</div>
       <div class="options ${opt.cols2 ? 'cols2' : ''}">
         ${q.options.map((o, k) => `<button class="opt" data-k="${k}">${opt.label ? opt.label(o) : o}</button>`).join('')}
       </div>
@@ -539,6 +549,7 @@ function runQuiz(g, qs, opt = {}) {
     const q = qs[i], btns = [...stage.querySelectorAll('.opt')];
     btns.forEach(b => b.disabled = true);
     btns[q.answer].classList.add('right');
+    const tb = document.getElementById('tbar'); if (tb) tb.classList.add('stop');
     if (k === q.answer) {
       // 정답 100점 + 빨리 맞힐수록 최대 50점 추가
       points += 100 + Math.max(0, Math.round(50 - (Date.now() - qStart) / 1000 * 3));
@@ -546,9 +557,10 @@ function runQuiz(g, qs, opt = {}) {
       if (q.explain) document.getElementById('after').innerHTML = `<div class="answer-box">${q.explain}</div>`;
       later(next, q.explain ? 1500 : 900);
     } else {
-      btns[k].classList.add('wrong', 'shake'); feedback(false);
+      if (k >= 0) btns[k].classList.add('wrong', 'shake');
+      feedback(false);
       document.getElementById('after').innerHTML = `
-        <div class="answer-box">정답: <b>${q.answerText}</b>${q.explain ? '<br>' + q.explain : ''}</div>
+        <div class="answer-box">${k < 0 ? '⏰ 시간이 지났어요!<br>' : ''}정답: <b>${q.answerText}</b>${q.explain ? '<br>' + q.explain : ''}</div>
         <button class="btn primary" id="nextBtn">${i + 1 < qs.length ? '다음 문제' : '결과 보기'}</button>`;
       document.getElementById('nextBtn').onclick = next;
     }
@@ -567,41 +579,61 @@ function runQuiz(g, qs, opt = {}) {
 /* ---------- 1. 오늘의 질문 ---------- */
 function startToday() {
   const g = byId('today');
-  showIntro(g, `<p>오늘 날짜와 요일, 계절을 떠올려 답해 보세요.</p><p>달력이나 휴대폰 시계를 보지 않고 기억으로 맞혀 보세요.</p>`, null, () => {
+  showIntro(g, `<p>오늘 날짜와 요일에서 출발해 <b>몇십 일 뒤·지난달·다음 달</b>의 날짜와 요일을 머릿속으로 계산해 보세요.</p><p>달력이나 휴대폰 시계를 보지 않고 맞혀 보세요. 보기가 하루 이틀 차이로 비슷하니 잘 살펴보세요. 모두 8문제예요.</p>`, null, () => {
     const d = new Date(), y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
     const W = ['일', '월', '화', '수', '목', '금', '토'];
     const season = m >= 3 && m <= 5 ? '봄' : m >= 6 && m <= 8 ? '여름' : m >= 9 && m <= 11 ? '가을' : '겨울';
-    const near = (v, min, max) => {
-      const s = new Set();
-      shuffle([-3, -2, -1, 1, 2, 3, 4, -4]).forEach(dv => { const c = v + dv; if (s.size < 3 && c >= min && c <= max) s.add(c); });
-      return [...s];
-    };
+    const D = (yy, mm, dd) => new Date(yy, mm - 1, dd);           // 넘치는 날짜는 다음 달로 자동 계산
+    const shift = (x, n) => new Date(x.getFullYear(), x.getMonth(), x.getDate() + n);
+    const md = x => `${x.getMonth() + 1}월 ${x.getDate()}일`;
+    const wd = x => W[x.getDay()] + '요일';
+    const wOff = (x, o) => W[(x.getDay() + o + 7) % 7] + '요일';
+    const uniq3 = (ans, list) => [...new Set(list.filter(v => v !== ans))].slice(0, 3);
     const Q = t => `<div class="q">${t}</div>`;
+    // 요일 보기: 정답의 하루·이틀 앞뒤 요일
+    const dayQ = (t, x) => makeQ(Q(t), wd(x), [wOff(x, -1), wOff(x, 1), wOff(x, pick([-2, 2]))]);
+    const next30 = shift(d, 30), ago14 = shift(d, -14);
+    const prevLast = new Date(y, m - 1, 0).getDate(), pDay = D(y, m - 1, Math.min(day, prevLast));
+    const lastDay = new Date(y, m, 0).getDate(), last = D(y, m, lastDay);
+    const alt = lastDay === 31 ? 30 : lastDay === 30 ? 31 : lastDay === 29 ? 28 : 29;
     const qs = [
-      makeQ(Q('올해는 몇 년인가요?'), y + '년', [y - 2, y - 1, y + 1].map(v => v + '년')),
-      makeQ(Q('지금은 몇 월인가요?'), m + '월', near(m, 1, 12).map(v => v + '월')),
-      makeQ(Q('오늘은 며칠인가요?'), day + '일', near(day, 1, 31).map(v => v + '일')),
-      makeQ(Q('오늘은 무슨 요일인가요?'), W[d.getDay()] + '요일', shuffle(W.filter((_, i) => i !== d.getDay())).slice(0, 3).map(w => w + '요일')),
-      makeQ(Q('지금은 어느 계절인가요?'), season, ['봄', '여름', '가을', '겨울'].filter(s => s !== season)),
-      makeQ(Q('지금은 오전인가요, 오후인가요?'), d.getHours() < 12 ? '오전' : '오후', [d.getHours() < 12 ? '오후' : '오전']),
+      // 날짜와 요일이 모두 맞아야 정답
+      makeQ(Q('오늘은 몇 월 며칠, 무슨 요일인가요?'), `${md(d)} ${wd(d)}`,
+        [`${md(d)} ${wOff(d, 1)}`, `${md(d)} ${wOff(d, -1)}`, `${md(shift(d, 1))} ${wd(d)}`]),
+      dayQ('오늘부터 <b>20일 뒤</b>는 무슨 요일인가요?', shift(d, 20)),
+      makeQ(Q('오늘부터 <b>30일 뒤</b>는 몇 월 며칠인가요?'), md(next30),
+        uniq3(md(next30), [md(D(y, m + 1, day)), md(shift(d, 29)), md(shift(d, 31)), md(shift(d, 28)), md(shift(d, 32))])),
+      dayQ(`지난달 <b>${md(pDay)}</b>은 무슨 요일이었나요?`, pDay),
+      dayQ('<b>다음 달 1일</b>은 무슨 요일인가요?', D(y, m + 1, 1)),
+      // 마지막 날 수가 다르면 요일도 그만큼 밀린 보기
+      makeQ(Q('<b>이번 달 마지막 날</b>은 며칠, 무슨 요일인가요?'), `${lastDay}일 ${wd(last)}`,
+        [`${lastDay}일 ${wOff(last, 1)}`, `${lastDay}일 ${wOff(last, -1)}`, `${alt}일 ${wOff(last, alt - lastDay)}`]),
+      makeQ(Q('오늘부터 <b>2주 전</b>은 몇 월 며칠이었나요?'), md(ago14), [md(shift(d, -13)), md(shift(d, -15)), md(shift(d, -21))]),
+      dayQ('오늘부터 <b>100일 뒤</b>는 무슨 요일인가요?', shift(d, 100)),
     ];
-    runQuiz(g, qs, { cols2: true, doneText: () => `오늘은 ${y}년 ${m}월 ${day}일 ${W[d.getDay()]}요일, ${season}이에요.` });
+    runQuiz(g, qs, { doneText: () => `오늘은 ${y}년 ${m}월 ${day}일 ${W[d.getDay()]}요일, ${season}이에요.` });
   });
 }
 
 /* ---------- 2. 짝 맞추기 ---------- */
+// 서로 비슷해 보이는 그림 두 개씩 묶음 — 어려울수록 이 묶음을 통째로 섞어 헷갈리게
+const PAIR_SIMILAR = [['🍎', '🍅'], ['🍊', '🍑'], ['🍋', '🍌'], ['🍓', '🍒'], ['🐶', '🐱'], ['🐻', '🐼'], ['🐰', '🐹'], ['🌻', '🌼'], ['🌷', '🌹'], ['🚗', '🚕'], ['☂️', '🌂'], ['🎈', '🎀']];
 function startPair() {
-  showIntro(byId('pair'), `<p>뒤집힌 카드를 두 장씩 눌러 보세요.</p><p>같은 그림이면 짝이 맞고, 다르면 다시 뒤집혀요. 그림 자리를 기억해 두세요.</p>`,
-    [{ label: '쉬움', sub: '카드 8장', v: 4 }, { label: '보통', sub: '카드 12장', v: 6 }, { label: '어려움', sub: '카드 16장', v: 8 }], playPair);
+  showIntro(byId('pair'), `<p>뒤집힌 카드를 두 장씩 눌러 보세요.</p><p>같은 그림이면 짝이 맞고, 다르면 금방 다시 뒤집혀요. <b>비슷하게 생긴 그림</b>이 섞여 있으니 잘 구별해서 자리를 기억해 두세요.</p>`,
+    [{ label: '쉬움', sub: '카드 16장', v: [8, 0, 900] }, { label: '보통', sub: '카드 20장·비슷한 그림', v: [10, 3, 800] }, { label: '어려움', sub: '카드 24장·비슷한 그림', v: [12, 6, 700] }], playPair);
 }
-function playPair(n) {
+// [짝 수, 비슷한 그림 묶음 수, 틀렸을 때 다시 뒤집히는 시간(ms)]
+function playPair([n, sim, flipMs]) {
   const g = byId('pair'), stage = gameFrame(g);
-  const pool = shuffle(['🍎', '🍌', '🍇', '🍓', '🍉', '🍑', '🌻', '🌷', '🐶', '🐱', '🐰', '🐻', '🚗', '⛵', '☂️', '🎈']).slice(0, n);
+  const groups = shuffle(PAIR_SIMILAR), simPics = groups.slice(0, sim).flat();
+  const pool = [...simPics, ...shuffle(groups.slice(sim).flat()).slice(0, n - simPics.length)];
   const cards = shuffle([...pool, ...pool]);
+  // 24장은 4열 정사각형(6줄), 20장은 5열, 16장은 4열
+  const cols = n === 10 ? 5 : 4, sq = n === 12 ? 'aspect-ratio:1;' : '';
   let first = null, lock = false, found = 0, tries = 0;
   setProg(`짝 0 / ${n}`);
   stage.innerHTML = `<p class="guide">같은 그림 두 장을 찾아보세요.</p>
-    <div class="pairs">${cards.map((c, i) => `<button class="pcard" data-i="${i}" aria-label="카드 ${i + 1}"><span class="front">${c}</span><span class="back">?</span></button>`).join('')}</div>`;
+    <div class="pairs" style="grid-template-columns:repeat(${cols},1fr)">${cards.map((c, i) => `<button class="pcard" style="${sq}" data-i="${i}" aria-label="카드 ${i + 1}"><span class="front">${c}</span><span class="back">?</span></button>`).join('')}</div>`;
   stage.querySelectorAll('.pcard').forEach(b => b.onclick = () => {
     if (lock || b.classList.contains('open')) return;
     b.classList.add('open');
@@ -618,7 +650,7 @@ function playPair(n) {
       }, 800);
     } else {
       lock = true;
-      later(() => { a.classList.remove('open'); b.classList.remove('open'); lock = false; }, 1100);
+      later(() => { a.classList.remove('open'); b.classList.remove('open'); lock = false; }, flipMs);
     }
   });
 }
@@ -627,38 +659,54 @@ function playPair(n) {
 const COLORS = [
   { n: '빨강', c: '#d93025' }, { n: '파랑', c: '#1a5fd0' },
   { n: '초록', c: '#1e8e3e' }, { n: '보라', c: '#8430ce' },
+  { n: '주황', c: '#ef6c00' }, { n: '검정', c: '#222222' },
+  { n: '분홍', c: '#e8458b' }, { n: '갈색', c: '#7b4a1e' }, // 어려움에서만 — 빨강·주황·검정과 헷갈리는 색
 ];
+const COLOR_Q = 16; // 문제 수
 function startColor() {
   const g = byId('color');
   const ex = `<span style="color:#1a5fd0;font-weight:900;font-size:1.3rem">빨강</span>`;
-  showIntro(g, `<p><b>쉬움</b> — <b>글자의 색깔</b>을 고르세요.<br>예) ${ex} → 파란색으로 쓰였으니 <b>파랑</b>이 정답</p>
-    <p><b>어려움</b> — <b>글자의 뜻</b>에 맞는 색깔을 고르세요.<br>예) ${ex} → 파란색으로 쓰였어도 '빨강'이라고 쓰여 있으니 <b>빨강</b>이 정답</p>
-    <p>모두 10문제예요.</p>`,
-    [{ label: '쉬움', sub: '글자 색 고르기', v: 'ink' }, { label: '어려움', sub: '글자 뜻 고르기', v: 'word' }], mode => {
-    const qs = [];
-    for (let i = 0; i < 10; i++) {
-      const word = pick(COLORS);
-      const ink = (i < 2 || Math.random() < 0.25) ? word : pick(COLORS.filter(c => c !== word));
-      const ans = mode === 'word' ? word : ink;
-      const options = COLORS.map(c => c.n);
-      qs.push({
-        prompt: mode === 'word'
-          ? `<div class="sub">글자의 <b>뜻</b>에 맞는 색깔을 고르세요</div><div class="stroop" style="color:${ink.c}">${word.n}</div>`
-          : `<div class="sub">글자의 <b>색깔</b>을 고르세요</div><div class="stroop" style="color:${ink.c}">${word.n}</div>`,
-        options, answer: options.indexOf(ans.n), answerText: ans.n,
-      });
+  showIntro(g, `<p>두 가지 질문이 <b>번갈아</b> 나와요. 질문을 잘 보고 답하세요.</p>
+    <p>🎨 <b>글자의 색깔</b>을 고르세요<br>예) ${ex} → 파란색으로 쓰였으니 <b>파랑</b></p>
+    <p>📖 <b>글자의 뜻</b>에 맞는 색깔을 고르세요<br>예) ${ex} → '빨강'이라고 쓰여 있으니 <b>빨강</b></p>
+    <p><b>쉬움</b>은 3문제마다 바뀌고 색깔 6가지·한 문제 7초, <b>어려움</b>은 1~2문제마다 바뀌고 비슷한 색까지 8가지·한 문제 5초예요. 시간이 지나면 틀린 것으로 넘어가요. 모두 ${COLOR_Q}문제예요.</p>`,
+    [{ label: '쉬움', sub: '6색·3문제마다 바뀜·7초', v: 'easy' }, { label: '어려움', sub: '8색·1~2문제마다 바뀜·5초', v: 'hard' }], level => {
+    const cols = level === 'easy' ? COLORS.slice(0, 6) : COLORS;
+    // 질문 순서: 쉬움은 3문제씩 묶어 번갈아, 어려움은 1~2문제마다 바뀜(언제 바뀔지 모름)
+    const modes = [];
+    let m = Math.random() < 0.5 ? 'ink' : 'word';
+    while (modes.length < COLOR_Q) {
+      const run = level === 'easy' ? 3 : rand(1, 2);
+      for (let r = 0; r < run && modes.length < COLOR_Q; r++) modes.push(m);
+      m = m === 'ink' ? 'word' : 'ink';
     }
-    runQuiz(g, qs, { cols2: true, label: name => `<span class="sw" style="background:${COLORS.find(c => c.n === name).c}"></span>${name}` });
+    const qs = modes.map((mode, i) => {
+      const word = pick(cols);
+      const ink = Math.random() < 0.15 ? word : pick(cols.filter(c => c !== word));
+      const ans = mode === 'word' ? word : ink;
+      const options = cols.map(c => c.n);
+      const changed = i > 0 && modes[i - 1] !== mode;
+      const ask = mode === 'word' ? '📖 글자의 <b>뜻</b>에 맞는 색깔을 고르세요' : '🎨 글자의 <b>색깔</b>을 고르세요';
+      return {
+        prompt: `<div class="ask ${changed ? 'changed' : ''}">${changed ? '<span>질문이 바뀌었어요!</span>' : ''}${ask}</div><div class="stroop" style="color:${ink.c}">${word.n}</div>`,
+        options, answer: options.indexOf(ans.n), answerText: ans.n,
+      };
+    });
+    runQuiz(g, qs, { cols2: true, limit: level === 'easy' ? 7 : 5, label: name => `<span class="sw" style="background:${COLORS.find(c => c.n === name).c}"></span>${name}` });
   });
 }
 
 /* ---------- 4. 장보기 기억 ---------- */
-const GOODS = [['🍎', '사과'], ['🥕', '당근'], ['🥚', '달걀'], ['🥛', '우유'], ['🐟', '생선'], ['🍞', '빵'], ['🧅', '양파'], ['🍌', '바나나'], ['🍇', '포도'], ['🥬', '배추'], ['🧀', '치즈'], ['🍗', '닭고기'], ['🍉', '수박'], ['🌶️', '고추'], ['🥔', '감자'], ['🍓', '딸기'], ['🍊', '귤'], ['🧄', '마늘'], ['🍄', '버섯'], ['🌽', '옥수수']];
+const GOODS = [['🍎', '사과'], ['🥕', '당근'], ['🥚', '달걀'], ['🥛', '우유'], ['🐟', '생선'], ['🍞', '빵'], ['🧅', '양파'], ['🍌', '바나나'], ['🍇', '포도'], ['🥬', '배추'], ['🧀', '치즈'], ['🍗', '닭고기'], ['🍉', '수박'], ['🌶️', '고추'], ['🥔', '감자'], ['🍓', '딸기'], ['🍊', '귤'], ['🧄', '마늘'], ['🍄', '버섯'], ['🌽', '옥수수'],
+  ['🍐', '배'], ['🍋', '레몬'], ['🍑', '복숭아'], ['🥒', '오이'], ['🍅', '토마토'], ['🥦', '브로콜리'], ['🍠', '고구마'], ['🦐', '새우'], ['🥝', '키위'], ['🥩', '소고기']];
+// 비슷해서 헷갈리는 물건 묶음(이름) — 어려울수록 장바구니 물건의 '비슷한 물건'을 보기에 먼저 넣음
+const GOODS_SIMILAR = [['사과', '토마토', '복숭아', '배'], ['귤', '레몬'], ['당근', '고구마', '감자'], ['배추', '브로콜리', '오이'], ['양파', '마늘'], ['딸기', '수박'], ['포도', '키위'], ['닭고기', '소고기', '생선', '새우'], ['우유', '치즈', '달걀'], ['고추', '옥수수', '바나나'], ['빵', '버섯']];
 function startShop() {
-  showIntro(byId('shop'), `<p>장바구니에 담을 물건을 먼저 보여 드려요. 천천히 기억한 뒤 <b>다 외웠어요</b>를 누르세요.</p><p>그다음 여러 물건 중에서 장바구니에 있던 물건만 골라 주세요. 모두 3번 장을 봐요.</p>`,
-    [{ label: '쉬움', sub: '물건 3개', v: 3 }, { label: '보통', sub: '물건 5개', v: 5 }, { label: '어려움', sub: '물건 7개', v: 7 }], playShop);
+  showIntro(byId('shop'), `<p>장바구니에 담을 물건을 <b>잠깐만</b> 보여 드려요. 시간이 지나면 저절로 넘어가니 빨리 기억해 두세요. 다 외웠으면 <b>다 외웠어요</b>를 눌러도 돼요.</p><p>그다음 여러 물건 중에서 장바구니에 있던 물건만 골라 주세요. 보통·어려움에서는 <b>비슷한 물건</b>이 보기에 섞여 나와요. 모두 3번 장을 봐요.</p>`,
+    [{ label: '쉬움', sub: '물건 6개·9초', v: [6, 9, 15, 0] }, { label: '보통', sub: '물건 8개·11초', v: [8, 11, 18, 0.5] }, { label: '어려움', sub: '물건 10개·12초', v: [10, 12, 21, 1] }], playShop);
 }
-function playShop(k) {
+// [물건 수, 보여 주는 시간(초), 고를 보기 수, 비슷한 물건을 보기에 넣는 비율]
+function playShop([k, showSec, size, simRate]) {
   const g = byId('shop'), stage = gameFrame(g), R = 3;
   let round = 0, total = 0, perfect = 0, targets = [];
   const item = (x, tag, attr = '') => `<${tag} class="good" ${attr}><span class="ge">${x[0]}</span><span>${x[1]}</span></${tag}>`;
@@ -668,12 +716,29 @@ function playShop(k) {
     stage.innerHTML = `
       <div class="card"><div class="q">🧺 장바구니에 담을 물건이에요.<br>잘 기억해 두세요!</div></div>
       <div class="goods mem">${targets.map(x => item(x, 'div')).join('')}</div>
+      <p class="guide" style="margin-top:12px" id="memLeft"></p>
       <button class="btn primary" id="memBtn">다 외웠어요</button>`;
-    document.getElementById('memBtn').onclick = choose;
+    // 보여 주는 시간: 6개 9초 · 8개 11초 · 10개 12초
+    const r = round;
+    let left = showSec, gone = false;
+    const go = () => { if (!gone && r === round) { gone = true; choose(); } };
+    const tick = () => {
+      if (gone || r !== round) return;
+      if (left <= 0) return go();
+      document.getElementById('memLeft').textContent = `${left}초 뒤에 넘어가요`;
+      left--; later(tick, 1000);
+    };
+    tick();
+    document.getElementById('memBtn').onclick = go;
   }
   function choose() {
-    const size = k === 3 ? 9 : k === 5 ? 12 : 15;
-    const opts = shuffle([...targets, ...shuffle(GOODS.filter(x => !targets.includes(x))).slice(0, size - k)]);
+    const rest = GOODS.filter(x => !targets.includes(x));
+    // 장바구니 물건과 비슷한 물건 후보(묶음이 같은 것)
+    const simOf = x => (GOODS_SIMILAR.find(grp => grp.includes(x[1])) || []).filter(nm => nm !== x[1]);
+    const simNames = new Set(targets.filter(() => Math.random() < simRate).flatMap(simOf));
+    const simGoods = shuffle(rest.filter(x => simNames.has(x[1])));
+    const others = shuffle(rest.filter(x => !simNames.has(x[1])));
+    const opts = shuffle([...targets, ...[...simGoods, ...others].slice(0, size - k)]);
     const sel = new Set();
     stage.innerHTML = `
       <div class="card"><div class="q">장바구니에 있던 물건 <b>${k}개</b>를 골라 주세요.</div><div class="sub" id="cnt">0 / ${k}개 골랐어요</div></div>
@@ -718,39 +783,34 @@ const MARKET = [
   { n: '라면', u: '봉지', min: 8, max: 12 }, { n: '콩나물', u: '봉지', min: 10, max: 20 },
   { n: '귤', u: '봉지', min: 30, max: 60 }, { n: '달걀', u: '판', min: 50, max: 80 },
 ];
+const CALC_Q = 6; // 문제 수
 function startCalc() {
-  showIntro(byId('calc'), `<p>시장에서 장을 본 값을 계산해 보세요.</p><p>종이와 연필을 써도 좋아요. 모두 5문제예요.</p>`,
-    [{ label: '쉬움', sub: '한 가지 물건', v: 0 }, { label: '보통', sub: '두 가지 합계', v: 1 }, { label: '어려움', sub: '거스름돈', v: 2 }], playCalc);
+  showIntro(byId('calc'), `<p>시장에서 장을 본 값을 계산해 보세요. 보기가 몇백 원 차이로 비슷하니 끝자리까지 꼼꼼히 계산하세요.</p><p>종이와 연필을 써도 좋아요. 모두 ${CALC_Q}문제예요.</p>`,
+    [{ label: '쉬움', sub: '세 가지 합계', v: 0 }, { label: '보통', sub: '세 가지 거스름돈', v: 1 }, { label: '어려움', sub: '네 가지 거스름돈', v: 2 }], playCalc);
 }
+// 오답 보기: 정답과 100~200원 차이 또는 1,000원 차이(자릿수 실수)
 function wrongNums(ans) {
   const out = [];
-  shuffle([100, 200, 300, 500, 1000, -100, -200, -300, -500, -1000]).forEach(d => {
+  shuffle([100, -100, 200, -200, 1000, -1000]).forEach(d => {
     if (out.length < 3 && ans + d > 0) out.push(ans + d);
   });
   return out;
 }
 function playCalc(level) {
   const qs = [];
-  for (let i = 0; i < 5; i++) {
-    const [a, b] = shuffle(MARKET);
-    const pa = rand(a.min, a.max) * 100, pb = rand(b.min, b.max) * 100;
+  for (let i = 0; i < CALC_Q; i++) {
+    // 쉬움·보통 3가지, 어려움 4가지 물건
+    const buys = shuffle(MARKET).slice(0, level === 2 ? 4 : 3).map((x, j) => ({ ...x, p: rand(x.min, x.max) * 100, q: j === 0 ? rand(2, 5) : rand(1, 4) }));
+    const sum = buys.reduce((s, x) => s + x.p * x.q, 0);
+    const receipt = `<div class="receipt">${buys.map(x => `
+      <div class="ln"><span>${x.n} (1${x.u} ${won(x.p)})</span><b>${x.q}${x.u}</b></div>`).join('')}</div>`;
+    const calcText = buys.map(x => `${won(x.p)} × ${x.q}`).join(' + ') + ` = ${won(sum)}`;
     if (level === 0) {
-      const q = rand(2, 4), ans = pa * q;
-      qs.push(makeQ(`<div class="q">${a.n} 1${a.u}에 <b>${won(pa)}</b>이에요.<br>${a.n} ${q}${a.u}는 모두 얼마일까요?</div>`,
-        won(ans), wrongNums(ans).map(won), { explain: `${won(pa)} × ${q} = ${won(ans)}` }));
+      qs.push(makeQ(`${receipt}<div class="q">모두 얼마일까요?</div>`, won(sum), wrongNums(sum).map(won), { explain: calcText }));
     } else {
-      const qa = rand(1, 3), qb = rand(1, 2), sum = pa * qa + pb * qb;
-      const receipt = `<div class="receipt">
-        <div class="ln"><span>${a.n} (1${a.u} ${won(pa)})</span><b>${qa}${a.u}</b></div>
-        <div class="ln"><span>${b.n} (1${b.u} ${won(pb)})</span><b>${qb}${b.u}</b></div></div>`;
-      const calcText = `${won(pa)} × ${qa} + ${won(pb)} × ${qb} = ${won(sum)}`;
-      if (level === 1) {
-        qs.push(makeQ(`${receipt}<div class="q">모두 얼마일까요?</div>`, won(sum), wrongNums(sum).map(won), { explain: calcText }));
-      } else {
-        const bill = [10000, 20000, 50000].find(v => v > sum) || 100000, ch = bill - sum;
-        qs.push(makeQ(`${receipt}<div class="q"><b>${won(bill)}</b>을 냈어요.<br>거스름돈은 얼마일까요?</div>`, won(ch), wrongNums(ch).map(won),
-          { explain: `합계 ${won(sum)}, ${won(bill)} − ${won(sum)} = ${won(ch)}` }));
-      }
+      const bill = [10000, 20000, 30000, 50000].find(v => v > sum) || 100000, ch = bill - sum;
+      qs.push(makeQ(`${receipt}<div class="q"><b>${won(bill)}</b>을 냈어요.<br>거스름돈은 얼마일까요?</div>`, won(ch), wrongNums(ch).map(won),
+        { explain: `합계 ${calcText}<br>${won(bill)} − ${won(sum)} = ${won(ch)}` }));
     }
   }
   runQuiz(byId('calc'), qs, { cols2: true, mult: [1, 1.5, 2][level] });
@@ -759,19 +819,26 @@ function playCalc(level) {
 /* ---------- 6. 다른 그림 찾기 ---------- */
 const DIFF_ICONS = ['🌳', '🌸', '🏠', '☀️', '🐟', '🐦', '🚲', '⛵', '🍎', '🌙', '⭐', '🐢', '🍄', '🎈', '🐝', '🌼', '☁️', '🐌', '🐞', '🍓'];
 function startDiff() {
-  showIntro(byId('diff'), `<p>위의 <b>원래 그림</b>과 아래의 <b>바뀐 그림</b>을 비교해 보세요.</p><p>다른 칸을 찾으면 눌러 주세요. 어려우면 <b>힌트 보기</b>를 누르세요. 모두 3판이에요.</p>`,
-    [{ label: '쉬움', sub: '3×3, 2곳', v: [3, 2] }, { label: '보통', sub: '4×4, 3곳', v: [4, 3] }, { label: '어려움', sub: '5×5, 4곳', v: [5, 4] }], playDiff);
+  showIntro(byId('diff'), `<p>위의 <b>원래 그림</b>과 아래의 <b>바뀐 그림</b>을 비교해 보세요.</p><p>다른 칸을 찾으면 눌러 주세요. 보통·어려움은 <b>비슷하게 생긴 그림</b>으로 바뀌어 있어요. 어려우면 <b>힌트 보기</b>를 누르세요. 모두 3판이에요.</p>`,
+    [{ label: '쉬움', sub: '4×4, 4곳', v: [4, 4, 1, 0.5] }, { label: '보통', sub: '5×5, 5곳 비슷한 그림', v: [5, 5, 1.5, 1] }, { label: '어려움', sub: '5×5, 6곳 비슷한 그림', v: [5, 6, 2, 1] }], playDiff);
 }
-function playDiff([n, k]) {
+// 비슷해 보이는 그림끼리 묶음 — 어려울수록 이 안에서 바꿔 찾기 어렵게
+const DIFF_SIMILAR = [['🌸', '🌼'], ['🐞', '🐝', '🐌'], ['☀️', '🌙', '⭐', '☁️'], ['🍎', '🍓', '🍄', '🎈'], ['🐟', '🐦', '🐢'], ['🚲', '⛵'], ['🌳', '🏠']];
+function playDiff([n, k, mult, simRate]) {
   const g = byId('diff'), stage = gameFrame(g), R = 3;
   const fs = { 3: '2.3rem', 4: '1.75rem', 5: '1.35rem' }[n];
+  const swapFor = c => {
+    const grp = (DIFF_SIMILAR.find(s => s.includes(c)) || []).filter(x => x !== c);
+    if (grp.length && Math.random() < simRate) return pick(grp);
+    let o; do { o = pick(DIFF_ICONS); } while (o === c); return o;
+  };
   let round = 0, misses = 0, hints = 0, base, changed, diff, found;
   function newRound() {
     round++; found = new Set();
     base = Array.from({ length: n * n }, () => pick(DIFF_ICONS));
     changed = base.slice();
     diff = shuffle([...Array(n * n).keys()]).slice(0, k);
-    diff.forEach(i => { let c; do { c = pick(DIFF_ICONS); } while (c === base[i]); changed[i] = c; });
+    diff.forEach(i => { changed[i] = swapFor(base[i]); });
     const grid = arr => `<div class="dgrid" style="--n:${n}">${arr.map((c, i) => `<button class="dcell" data-i="${i}" style="font-size:${fs}">${c}</button>`).join('')}</div>`;
     stage.innerHTML = `
       <p class="guide">다른 곳 <b>${k}군데</b>를 찾아 누르세요.</p>
@@ -793,7 +860,7 @@ function playDiff([n, k]) {
         toast(round < R ? '모두 찾았어요! 👏' : '다 찾았어요! 🎉');
         later(() => {
           if (round < R) return newRound();
-          const sec = playSec(), mult = { 2: 1, 3: 1.5, 4: 2 }[k];
+          const sec = playSec();
           finish(g, {
             stars: misses + hints * 2 <= 2 ? 3 : misses + hints * 2 <= 6 ? 2 : 1, title: `${R}판을 모두 끝내셨어요!`,
             detail: `${sec}초 · 잘못 누름 ${misses}번 · 힌트 ${hints}번`,
@@ -818,7 +885,7 @@ function playDiff([n, k]) {
 
 /* ---------- 7. 속담 완성 ---------- */
 // [앞부분, 정답, 뒷부분, 오답 3개]
-const PROVERBS = [
+const PROVERBS = [ // 잘 알려진 속담
   ['가는 말이 고와야 ', '오는', ' 말이 곱다', ['하는', '듣는', '지난']],
   ['낮말은 새가 듣고 밤말은 ', '쥐', '가 듣는다', ['소', '개', '닭']],
   ['원숭이도 ', '나무', '에서 떨어진다', ['지붕', '사다리', '담장']],
@@ -849,10 +916,53 @@ const PROVERBS = [
   ['가랑비에 ', '옷', ' 젖는 줄 모른다', ['신발', '머리', '이불']],
   ['누워서 ', '떡', ' 먹기', ['밥', '죽', '국수']],
 ];
+// 덜 익숙하거나 헷갈리는 보기가 있는 속담
+const PROVERBS_HARD = [
+  ['가는 날이 ', '장날', '이다', ['생일', '잔칫날', '제삿날']],
+  ['공든 ', '탑', '이 무너지랴', ['집', '담', '성']],
+  ['', '바늘', ' 도둑이 소도둑 된다', ['실', '못', '송곳']],
+  ['고생 끝에 ', '낙', '이 온다', ['복', '봄', '돈']],
+  ['말 한마디에 ', '천 냥', ' 빚도 갚는다', ['백 냥', '만 냥', '열 냥']],
+  ['윗물이 맑아야 ', '아랫물', '이 맑다', ['냇물', '샘물', '바닷물']],
+  ['', '달면', ' 삼키고 쓰면 뱉는다', ['좋으면', '싸면', '많으면']],
+  ['수박 ', '겉', ' 핥기', ['속', '씨', '줄기']],
+  ['', '똥', ' 묻은 개가 겨 묻은 개 나무란다', ['흙', '물', '밥']],
+  ['바람 앞의 ', '등불', '', ['촛불', '나뭇잎', '깃발']],
+  ['목마른 사람이 ', '우물', ' 판다', ['샘', '땅', '도랑']],
+  ['마른하늘에 ', '날벼락', '', ['소나기', '우박', '눈보라']],
+  ['벼는 익을수록 ', '고개', '를 숙인다', ['허리', '잎', '줄기']],
+  ['', '도토리', ' 키 재기', ['밤톨', '콩알', '솔방울']],
+  ['구슬이 서 말이라도 ', '꿰어야', ' 보배', ['닦아야', '모아야', '팔아야']],
+  ['배보다 ', '배꼽', '이 더 크다', ['허리', '손', '발']],
+  ['아는 길도 ', '물어', ' 가라', ['돌아', '쉬어', '뛰어']],
+  ['빛 좋은 ', '개살구', '', ['풋사과', '개복숭아', '돌배']],
+  ['모로 가도 ', '서울', '만 가면 된다', ['평양', '부산', '시장']],
+  ['가재는 ', '게', ' 편', ['새우', '고둥', '붕어']],
+];
+// 더 낯설거나 길어서 떠올리기 어려운 속담
+const PROVERBS_RARE = [
+  ['하룻강아지 ', '범', ' 무서운 줄 모른다', ['곰', '늑대', '사자']],
+  ['닭 쫓던 개 ', '지붕', ' 쳐다보듯', ['하늘', '담장', '나무']],
+  ['우물에 가 ', '숭늉', ' 찾는다', ['식혜', '막걸리', '국물']],
+  ['굼벵이도 ', '구르는', ' 재주가 있다', ['기는', '나는', '뛰는']],
+  ['얌전한 고양이가 ', '부뚜막', '에 먼저 올라간다', ['지붕', '담장', '선반']],
+  ['참새가 ', '방앗간', '을 그저 지나랴', ['떡집', '곳간', '논밭']],
+  ['못된 송아지 ', '엉덩이', '에 뿔 난다', ['머리', '등', '코']],
+  ['오르지 못할 ', '나무', '는 쳐다보지도 마라', ['산', '담', '언덕']],
+  ['자라 보고 놀란 가슴 ', '솥뚜껑', ' 보고 놀란다', ['냄비', '거북', '항아리']],
+  ['소 귀에 ', '경', ' 읽기', ['책', '편지', '시']],
+  ['방귀 뀐 놈이 ', '성낸다', '', ['웃는다', '도망간다', '숨는다']],
+  ['지렁이도 밟으면 ', '꿈틀한다', '', ['소리친다', '도망간다', '숨는다']],
+  ['울며 ', '겨자', ' 먹기', ['고추', '마늘', '생강']],
+  ['빈대 잡으려고 ', '초가삼간', ' 태운다', ['기와집', '오두막', '외양간']],
+  ['벼룩도 ', '낯짝', '이 있다', ['눈', '꼬리', '날개']],
+  ['병 주고 ', '약', ' 준다', ['밥', '돈', '물']],
+];
 function startProverb() {
   const g = byId('proverb');
-  showIntro(g, `<p>빈칸에 들어갈 알맞은 말을 골라 속담을 완성해 보세요.</p><p>모두 5문제예요.</p>`, null, () => {
-    const qs = shuffle(PROVERBS).slice(0, 5).map(([a, ans, b, w]) =>
+  showIntro(g, `<p>빈칸에 들어갈 알맞은 말을 골라 속담을 완성해 보세요.</p><p>자주 쓰지 않는 속담도 나오고, 보기가 서로 비슷해요. 모두 8문제예요.</p>`, null, () => {
+    // 덜 익숙한 속담 4 + 낯선 속담 4 (잘 알려진 PROVERBS는 지금은 쓰지 않음)
+    const qs = shuffle([...shuffle(PROVERBS_HARD).slice(0, 4), ...shuffle(PROVERBS_RARE).slice(0, 4)]).map(([a, ans, b, w]) =>
       makeQ(`<div class="q" style="font-size:1.3rem">${a}<span style="display:inline-block;min-width:3em;border-bottom:3px solid var(--accent);color:var(--accent-d)">&nbsp;?&nbsp;</span>${b}</div>`,
         ans, w, { explain: `「${a}${ans}${b}」` }));
     runQuiz(g, qs, { cols2: true });
@@ -922,7 +1032,7 @@ function drawScene(kind) {
 }
 function startPuzzle() {
   showIntro(byId('puzzle'), `<p>그림이 여러 조각으로 섞여 있어요.</p><p>조각 하나를 누르고, 바꿀 자리의 조각을 누르면 <b>두 조각의 자리가 바뀌어요</b>. 작은 완성 그림을 보며 맞춰 보세요.</p>`,
-    [{ label: '쉬움', sub: '4조각', v: 2 }, { label: '보통', sub: '9조각', v: 3 }, { label: '어려움', sub: '16조각', v: 4 }], playPuzzle);
+    [{ label: '쉬움', sub: '16조각', v: 4 }, { label: '보통', sub: '25조각', v: 5 }, { label: '어려움', sub: '36조각', v: 6 }], playPuzzle);
 }
 function playPuzzle(n) {
   const g = byId('puzzle'), stage = gameFrame(g);
